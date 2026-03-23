@@ -1,0 +1,2210 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title id="pageTitle">Kana Mastery Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Noto+Serif+JP:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#0f0c1a; --surface:#1a1530; --card:#221d3a; --border:#332d55; --accent:#e8b86d; --accent2:#c97de8; --correct:#5ee8a0; --wrong:#e85e5e; --text:#f0eaff; --muted:#8a80aa; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,0.35) 0%,transparent 100%),radial-gradient(1px 1px at 80% 15%,rgba(255,255,255,0.25) 0%,transparent 100%),radial-gradient(2px 2px at 35% 50%,rgba(232,184,109,0.18) 0%,transparent 100%),radial-gradient(2px 2px at 70% 85%,rgba(201,125,232,0.12) 0%,transparent 100%);}
+.app{position:relative;z-index:1;width:100%;max-width:440px;padding:0 14px calc(40px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;min-height:100vh;}
+header{text-align:center;padding:22px 0 2px;}
+.logo{font-family:'Noto Serif JP','PingFang SC',serif;font-size:11px;letter-spacing:5px;color:var(--accent);opacity:.85;}
+.title{font-family:'PingFang SC','Noto Serif JP','Hiragino Mincho ProN',serif;font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px;gap:4px;}
+.nav-tab{flex:1;padding:10px 4px;border:none;border-radius:10px;background:transparent;color:var(--muted);font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;}
+.nav-tab.active{background:linear-gradient(135deg,rgba(232,184,109,.18),rgba(201,125,232,.18));color:var(--text);border:1px solid rgba(232,184,109,.32);}
+.nav-tab:active{transform:scale(.97);}
+.tab-badge{display:none;align-items:center;justify-content:center;background:var(--wrong);color:#fff;font-size:9px;font-weight:900;border-radius:50%;width:15px;height:15px;margin-left:4px;vertical-align:middle;}
+.tab-badge.show{display:inline-flex;}
+.section-label{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:-6px;}
+.mode-tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px;gap:4px;}
+.mode-tab{flex:1;padding:8px 4px;border:none;border-radius:10px;background:transparent;color:var(--muted);font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .2s;}
+.mode-tab.active{background:linear-gradient(135deg,rgba(232,184,109,.18),rgba(201,125,232,.18));color:var(--text);border:1px solid rgba(232,184,109,.32);}
+.mode-tab:active{transform:scale(.97);}
+.practice-mode-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:3px;gap:3px;}
+.pm-btn{flex:1;padding:7px 8px;border:none;border-radius:9px;background:transparent;color:var(--muted);font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;}
+.pm-btn.active{background:linear-gradient(135deg,rgba(232,184,109,.2),rgba(201,125,232,.2));color:var(--text);border:1px solid rgba(232,184,109,.35);}
+.pm-btn:active{transform:scale(.97);}
+.settings-row{display:flex;gap:8px;flex-wrap:wrap;}
+.tag-btn{flex:1;min-width:66px;padding:7px 6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;color:var(--muted);font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center;}
+.tag-btn.active{border-color:rgba(232,184,109,.6);color:var(--accent);background:rgba(232,184,109,.08);}
+.tag-btn:active{transform:scale(.96);}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:11px 8px;text-align:center;}
+.stat-value{font-size:22px;font-weight:900;font-family:'Noto Serif JP','PingFang SC',serif;line-height:1;}
+.stat-value.accent{color:var(--accent);}.stat-value.correct{color:var(--correct);}.stat-value.wrong{color:var(--wrong);}
+.stat-label{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:1px;}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:50px;height:7px;overflow:hidden;}
+.progress-bar{height:100%;border-radius:50px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s ease;}
+.mastery-bar-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.mastery-label{font-size:11px;color:var(--muted);white-space:nowrap;}
+.mastery-bar-track{flex:1;height:6px;background:var(--border);border-radius:50px;overflow:hidden;}
+.mastery-bar-fill{height:100%;border-radius:50px;background:linear-gradient(90deg,var(--correct),#38d68a);transition:width .5s ease;}
+.mastery-count{font-size:12px;font-weight:700;color:var(--correct);white-space:nowrap;}
+.setting-btns{display:flex;gap:8px;}
+.setting-btn{flex:1;padding:8px 10px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;color:var(--muted);font-family:-apple-system,'PingFang SC','Noto Sans SC',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
+.setting-btn.active{border-color:rgba(232,184,109,.6);color:var(--accent);background:rgba(232,184,109,.08);}
+.setting-btn.danger{color:var(--wrong);border-color:rgba(232,94,94,.4);}
+.setting-btn:active{transform:scale(.96);}
+.question-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:26px 20px 22px;text-align:center;position:relative;overflow:hidden;margin-bottom:10px;}
+.question-card::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(232,184,109,.07) 0%,transparent 70%);pointer-events:none;}
+.question-card::after{content:'';position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(201,125,232,.07) 0%,transparent 70%);pointer-events:none;}
+.question-type{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+.kana-display{font-family:'Noto Serif JP','PingFang SC',serif;font-size:96px;font-weight:900;line-height:1;margin-bottom:6px;background:linear-gradient(160deg,#fff 40%,rgba(232,184,109,.7));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;}
+.kana-display.shake{animation:shake .35s ease;}.kana-display.pop{animation:pop .3s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+.hint-text{font-size:11px;color:var(--muted);min-height:16px;margin-top:2px;}
+.kana-score-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px;font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;}
+.kana-score-badge.positive{background:rgba(94,232,160,.15);color:var(--correct);}
+.kana-score-badge.negative{background:rgba(232,94,94,.15);color:var(--wrong);}
+.kana-score-badge.zero{background:rgba(138,128,170,.15);color:var(--muted);}
+.kana-score-badge.mastered{background:rgba(232,184,109,.2);color:var(--accent);}
+.game-area{display:flex;flex-direction:column;gap:0;}
+  .qwerty-active .game-area{padding-bottom:310px;}
+  .flick-active .game-area{padding-bottom:380px;}
+  .speak-badge{display:inline-flex;align-items:center;gap:6px;background:none;border:1.5px solid rgba(255,255,255,0.1);border-radius:50px;padding:4px 12px 4px 8px;cursor:pointer;transition:all .15s;font-family:-apple-system,'PingFang SC',sans-serif;}
+  .speak-badge:active{transform:scale(.95);opacity:.7;}
+  .speak-badge .sb-icon{font-size:16px;line-height:1;}
+  .speak-badge .sb-label{font-size:11px;font-weight:700;}
+  .speak-badge.positive{border-color:rgba(94,232,160,.35);color:var(--correct);}
+  .speak-badge.negative{border-color:rgba(232,94,94,.35);color:var(--wrong);}
+  .speak-badge.zero{border-color:rgba(138,128,170,.35);color:var(--muted);}
+  .speak-badge.mastered{border-color:rgba(232,184,109,.35);color:var(--accent);}
+.game-area .options-grid{margin-bottom:10px;}
+.game-area .feedback{margin-bottom:4px;}
+.game-area .confuse-panel{margin-bottom:10px;}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.option-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:15px 10px;color:var(--text);font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:21px;font-weight:700;cursor:pointer;transition:all .15s;}
+.option-btn .romaji{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px;}
+.option-btn:active:not(:disabled){transform:scale(.96);}
+.option-btn:hover:not(:disabled):not(.correct):not(.wrong){border-color:rgba(232,184,109,.5);background:rgba(232,184,109,.05);}
+.option-btn.correct{border-color:var(--correct);background:rgba(94,232,160,.1);color:var(--correct);}
+.option-btn.wrong{border-color:var(--wrong);background:rgba(232,94,94,.1);color:var(--wrong);}
+.option-btn:disabled{cursor:default;}
+.fillin-wrap{display:flex;gap:8px;align-items:stretch;width:100%;box-sizing:border-box;}
+.fillin-input{flex:1;min-width:0;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px 14px;color:var(--text);font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:20px;font-weight:700;outline:none;transition:border-color .2s;text-align:center;box-sizing:border-box;}
+.fillin-input::placeholder{color:var(--muted);font-size:14px;font-weight:400;}
+.fillin-input:focus{border-color:rgba(232,184,109,.6);}
+.fillin-input.correct{border-color:var(--correct);background:rgba(94,232,160,.08);color:var(--correct);}
+.fillin-input.wrong{border-color:var(--wrong);background:rgba(232,94,94,.08);color:var(--wrong);}
+.fillin-submit{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:14px;padding:16px 18px;color:#0f0c1a;font-size:18px;font-weight:900;cursor:pointer;transition:transform .15s;}
+.fillin-submit:active{transform:scale(.95);}
+.fillin-submit:disabled{opacity:.35;cursor:default;}
+  .feedback{text-align:center;font-size:13px;font-weight:700;height:20px;line-height:20px;overflow:hidden;}
+.feedback.correct{color:var(--correct);}.feedback.wrong{color:var(--wrong);}
+  .next-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:16px;color:#0f0c1a;font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:14px;font-weight:900;cursor:pointer;transition:opacity .2s;padding:14px;visibility:hidden;pointer-events:none;}
+  .next-btn.visible{visibility:visible;pointer-events:all;}
+.next-btn:active{transform:scale(.97);}
+.review-banner{background:rgba(232,94,94,.08);border:1.5px solid rgba(232,94,94,.4);border-radius:14px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--wrong);}
+.review-banner button{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;text-decoration:underline;}
+.score-screen{display:none;flex-direction:column;gap:14px;text-align:center;}
+.score-screen.show{display:flex;}
+.score-big{font-family:'Noto Serif JP','PingFang SC',serif;font-size:68px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.score-msg{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.7;white-space:pre-line;}
+.score-btns{display:flex;gap:10px;}
+.restart-btn{flex:1;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:16px;padding:14px;color:#0f0c1a;font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:13px;font-weight:900;cursor:pointer;transition:transform .2s;}
+.restart-btn:active{transform:scale(.97);}
+.review-btn{flex:1;background:rgba(232,94,94,.1);border:1.5px solid var(--wrong);border-radius:16px;padding:14px;color:var(--wrong);font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:13px;font-weight:900;cursor:pointer;transition:transform .2s;}
+.review-btn:active{transform:scale(.97);}
+.review-btn:disabled{opacity:.3;cursor:default;}
+.confuse-panel{display:none;background:rgba(232,94,94,.08);border:1.5px solid rgba(232,94,94,.35);border-radius:18px;padding:14px 16px;gap:10px;flex-direction:column;animation:fadeSlideIn .3s ease;}
+  .confuse-panel.show{display:flex;}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.confuse-panel-title{font-size:11px;letter-spacing:2px;color:var(--wrong);text-transform:uppercase;font-weight:700;}
+.confuse-chars{display:flex;gap:10px;align-items:center;}
+.confuse-char-pill{background:var(--card);border:1px solid rgba(232,94,94,.3);border-radius:12px;padding:6px 14px;text-align:center;}
+.confuse-char-pill .pill-kana{font-family:'Noto Serif JP','PingFang SC',serif;font-size:28px;font-weight:900;line-height:1;background:linear-gradient(160deg,#fff 30%,rgba(232,184,109,.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;}
+.confuse-char-pill .pill-romaji{font-size:11px;color:var(--accent);font-weight:700;display:block;margin-top:2px;}
+.confuse-vs{color:var(--muted);font-size:13px;font-weight:700;flex-shrink:0;}
+.confuse-tip-text{font-size:13px;color:var(--text);line-height:1.65;opacity:.85;}
+.after-answer-bar{display:none;position:fixed;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));flex-direction:column;gap:8px;z-index:199;}
+.after-answer-bar.show{display:flex;}
+.after-answer-bar .bar-feedback{text-align:center;font-size:13px;font-weight:700;}
+.after-answer-bar .bar-feedback.correct{color:var(--correct);}
+.after-answer-bar .bar-feedback.wrong{color:var(--wrong);}
+.after-answer-bar .bar-next{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:14px;padding:14px;color:#0f0c1a;font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:15px;font-weight:900;cursor:pointer;width:100%;}
+.after-answer-bar .bar-next:active{transform:scale(.97);}
+.mastered-notice{background:rgba(232,184,109,.08);border:1.5px solid rgba(232,184,109,.35);border-radius:18px;padding:24px 20px;text-align:center;display:none;flex-direction:column;gap:12px;}
+.mastered-notice-icon{font-size:40px;}
+.mastered-notice-title{font-family:'Noto Serif JP','PingFang SC',serif;font-size:18px;font-weight:900;color:var(--accent);}
+.mastered-notice-sub{font-size:13px;color:var(--muted);line-height:1.6;}
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.confirm-overlay.show{display:flex;}
+.confirm-box{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:24px 20px;max-width:320px;width:100%;text-align:center;display:flex;flex-direction:column;gap:16px;}
+.confirm-title{font-family:'Noto Serif JP','PingFang SC',serif;font-size:16px;font-weight:900;color:var(--text);}
+.confirm-msg{font-size:13px;color:var(--muted);line-height:1.6;}
+.confirm-btns{display:flex;gap:10px;}
+.confirm-cancel{flex:1;padding:12px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--muted);font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.confirm-ok{flex:1;padding:12px;background:rgba(232,94,94,.15);border:1.5px solid var(--wrong);border-radius:12px;color:var(--wrong);font-family:-apple-system,'PingFang SC','Noto Sans SC','Noto Sans JP',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.confirm-cancel:active,.confirm-ok:active{transform:scale(.97);}
+.notebook-page{display:none;flex-direction:column;gap:14px;}
+.notebook-page.show{display:flex;}
+.notebook-header{display:flex;align-items:center;justify-content:space-between;}
+.notebook-title{font-family:'Noto Serif JP','PingFang SC',serif;font-size:18px;font-weight:900;color:var(--wrong);}
+.notebook-actions{display:flex;gap:8px;}
+.nb-btn{padding:7px 14px;border-radius:10px;font-family:-apple-system,'PingFang SC','Noto Sans SC',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);white-space:nowrap;}
+.nb-btn.primary{border-color:var(--wrong);background:rgba(232,94,94,.1);color:var(--wrong);}
+.nb-btn:active{transform:scale(.95);}
+.nb-btn:disabled{opacity:.3;cursor:default;}
+.nb-empty{text-align:center;padding:44px 20px;background:var(--surface);border:1px solid var(--border);border-radius:20px;}
+.nb-empty-icon{font-size:40px;margin-bottom:10px;}
+.nb-empty-title{font-size:14px;font-weight:700;margin-bottom:5px;}
+.nb-empty-sub{font-size:12px;color:var(--muted);}
+.nb-info{font-size:11px;color:var(--muted);}
+.mistake-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.mistake-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:28px 8px 12px;text-align:center;position:relative;transition:border-color .2s;}
+.mistake-card:hover{border-color:rgba(232,94,94,.35);}
+.mistake-kana{font-family:'Noto Serif JP','PingFang SC',serif;font-size:36px;font-weight:900;line-height:1;margin-bottom:4px;background:linear-gradient(160deg,#fff 40%,rgba(232,184,109,.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.mistake-romaji{font-size:11px;color:var(--accent);font-weight:700;}
+.mistake-count{position:absolute;top:5px;left:7px;background:var(--wrong);color:#fff;font-size:9px;font-weight:900;border-radius:8px;padding:1px 5px;display:flex;align-items:center;justify-content:center;min-width:16px;}
+.mistake-remove{position:absolute;top:3px;right:4px;background:rgba(232,94,94,.15);border:1px solid rgba(232,94,94,.3);border-radius:6px;color:var(--wrong);font-size:13px;font-weight:900;line-height:1;cursor:pointer;padding:2px 5px;transition:all .15s;}
+.mistake-remove:hover{background:rgba(232,94,94,.3);border-color:var(--wrong);}
+.chart-page{display:none;flex-direction:column;gap:14px;}
+.chart-page.show{display:flex;}
+.chart-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px;gap:4px;}
+.chart-toggle-btn{flex:1;padding:10px;border:none;border-radius:10px;background:transparent;color:var(--muted);font-family:'Noto Serif JP','PingFang SC',serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;}
+.chart-toggle-btn.active{background:linear-gradient(135deg,rgba(232,184,109,.18),rgba(201,125,232,.18));color:var(--text);border:1px solid rgba(232,184,109,.32);}
+.chart-toggle-btn:active{transform:scale(.97);}
+.chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+.kana-table{width:100%;border-collapse:collapse;}
+.kana-table thead th{padding:8px 4px 6px;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--accent);text-align:center;border-bottom:1px solid var(--border);background:rgba(232,184,109,.05);}
+.kana-table thead th:first-child{color:var(--muted);font-size:10px;width:32px;}
+.kana-table tbody td.row-header{font-size:10px;font-weight:700;color:var(--muted);text-align:center;padding:6px 2px;border-right:1px solid var(--border);background:rgba(201,125,232,.04);letter-spacing:.5px;line-height:1.3;}
+.kana-table tbody td.kana-cell{text-align:center;padding:5px 2px;border-bottom:1px solid rgba(51,45,85,.5);transition:background .15s;cursor:default;}
+.kana-table tbody tr:last-child td{border-bottom:none;}
+.kana-table tbody td.kana-cell:hover{background:rgba(232,184,109,.07);}
+.kana-table tbody td.kana-cell.is-mistake{background:rgba(232,94,94,.07);}
+.kana-table tbody td.kana-cell.is-mistake:hover{background:rgba(232,94,94,.13);}
+.cell-kana{font-family:'Noto Serif JP','PingFang SC',serif;font-size:22px;font-weight:900;line-height:1;background:linear-gradient(160deg,#fff 30%,rgba(232,184,109,.65));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;}
+.cell-kana.mistake-char{background:linear-gradient(160deg,var(--wrong) 0%,#ff9090 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.cell-romaji{font-size:9.5px;color:var(--muted);display:block;margin-top:1px;letter-spacing:.3px;}
+.kana-table tbody td.kana-cell.empty{opacity:.15;}
+.chart-legend{display:flex;gap:16px;align-items:center;font-size:11px;color:var(--muted);padding:0 2px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:5px;}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.legend-dot.normal{background:rgba(232,184,109,.25);border:1px solid rgba(232,184,109,.5);}
+.legend-dot.mistake{background:rgba(232,94,94,.3);border:1px solid rgba(232,94,94,.6);}
+.cell-both{display:flex;flex-direction:column;gap:1px;}
+.cell-both .cell-kana{font-size:16px;}
+.cell-both .cell-romaji{font-size:8px;}
+
+  /* ── QWERTY Keyboard ── */
+  .qwerty-wrap {
+    display: none;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: #1c1828;
+    border-top: 1px solid var(--border);
+    padding: 8px 4px 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 300;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .qwerty-display { max-width: 440px; width: 100%; }
+  .qwerty-row { max-width: 440px; width: 100%; justify-content: center; }
+  .qwerty-wrap.show { display: flex; }
+
+  /* Input display area */
+  .qwerty-display {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-family: -apple-system, 'PingFang SC', 'Noto Sans JP', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    cursor: text;
+    letter-spacing: 1px;
+    user-select: none;
+  }
+  .qwerty-display .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background: var(--accent);
+    margin: 0 1px;
+    vertical-align: middle;
+    animation: blink .9s step-end infinite;
+  }
+  .qwerty-display .placeholder {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 400;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* Key rows */
+  .qwerty-row {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+  }
+  .qkey {
+    flex: 1;
+    max-width: 38px;
+    height: 42px;
+    background: #2e2845;
+    border: none;
+    border-radius: 8px;
+    color: var(--text);
+    font-family: -apple-system, 'PingFang SC', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .1s, transform .08s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 0 rgba(0,0,0,.4);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .qkey:active { background: #4a3f70; transform: scale(.93); box-shadow: none; }
+  .qkey.wide { max-width: 54px; font-size: 13px; }
+  .qkey.action {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #0f0c1a;
+    font-size: 13px;
+    font-weight: 900;
+    max-width: 72px;
+  }
+  .qkey.action:active { opacity: .8; transform: scale(.95); }
+  .qkey.del { font-size: 18px; }
+
+  /* ── Flick Keyboard ── */
+  .flick-wrap {
+    display: none;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: #1c1828;
+    border-top: 1px solid var(--border);
+    padding: 8px 0 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    z-index: 300;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+  .flick-wrap.show { display: flex; }
+
+  /* Display area */
+  .flick-display {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-family: 'Noto Serif JP', 'PingFang SC', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    letter-spacing: 2px;
+    user-select: none;
+    width: 360px; /* 5 × 68px + 4 × 5px gap */
+  }
+  .flick-display .fcursor {
+    display: inline-block; width: 2px; height: 1.2em;
+    background: var(--accent); margin: 0 1px; vertical-align: middle;
+    animation: blink .9s step-end infinite;
+  }
+  .flick-display .fplaceholder { color: var(--muted); font-size: 14px; font-weight: 400; font-family: -apple-system,'PingFang SC',sans-serif; }
+
+  /* Key grid */
+  .flick-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 68px);
+    gap: 5px;
+    justify-content: center;
+  }
+  .fkey.fkey-kana-toggle { background: #252035; font-family: -apple-system,'PingFang SC',sans-serif; }
+  .fkey.fkey-kana-toggle.kata-mode { background: rgba(201,125,232,.2); border: 1.5px solid rgba(201,125,232,.4); }
+  .fkey-wrap { position: relative; }
+  .fkey {
+    width: 68px; height: 68px;
+    background: #2e2845;
+    border: none; border-radius: 10px;
+    color: var(--text);
+    font-family: 'Noto Serif JP', 'PingFang SC', serif;
+    font-size: 22px; font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 0 rgba(0,0,0,.4);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; touch-action: none;
+    transition: background .1s;
+    position: relative;
+  }
+  .fkey:active { background: #4a3f70; box-shadow: none; }
+  .fkey.fkey-action {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #0f0c1a; font-size: 13px; font-weight: 900;
+    font-family: -apple-system,'PingFang SC',sans-serif;
+  }
+  .fkey.fkey-del { font-size: 18px; font-family: -apple-system,sans-serif; background: #252035; }
+  .fkey.fkey-mod { font-size: 14px; font-family: -apple-system,'PingFang SC',sans-serif; background: #252035; }
+  .fkey.fkey-abc { font-size: 13px; font-family: -apple-system,'PingFang SC',sans-serif; background: #252035; color: var(--muted); }
+  .fkey.fkey-space { aspect-ratio: unset; height: 46px; font-size: 13px; font-family: -apple-system,'PingFang SC',sans-serif; background: #252035; color: var(--muted); }
+
+  /* Bottom row special layout */
+  .flick-bottom {
+    display: grid;
+    grid-template-columns: 68px 68px 68px 48px 48px;
+    gap: 5px;
+    justify-content: center;
+    width: 364px;
+  }
+  .flick-bottom .fkey { width: 100%; height: 44px; }
+  .fkey-nav2 { font-size: 14px; font-family: -apple-system,sans-serif; background: #252035; color: var(--muted); }
+
+  /* Flick popup */
+  .flick-popup {
+    display: none;
+    position: fixed;
+    z-index: 400;
+    pointer-events: none;
+  }
+  .flick-popup.show { display: grid; }
+  .flick-popup-inner {
+    display: grid;
+    grid-template-areas:
+      ". top ."
+      "left center right"
+      ". bottom .";
+    grid-template-columns: 52px 52px 52px;
+    grid-template-rows: 52px 52px 52px;
+    gap: 2px;
+  }
+  .fp-cell {
+    background: #3a3060;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Noto Serif JP', serif; font-size: 18px; font-weight: 700;
+    color: var(--muted);
+  }
+  .fp-cell.fp-center { background: #5a4090; color: var(--text); grid-area: center; }
+  .fp-cell.fp-top    { grid-area: top; }
+  .fp-cell.fp-left   { grid-area: left; }
+  .fp-cell.fp-right  { grid-area: right; }
+  .fp-cell.fp-bottom { grid-area: bottom; }
+  .fp-cell.fp-active { background: var(--accent); color: #0f0c1a; }
+  .fp-cell.fp-empty  { background: transparent; }
+
+  .lang-toggle {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px;
+    gap: 2px;
+    margin-top: 8px;
+  }
+  .lang-btn {
+    flex: 1;
+    padding: 4px 12px;
+    border: none;
+    border-radius: 16px;
+    background: transparent;
+    color: var(--muted);
+    font-family: -apple-system, 'PingFang SC', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .lang-btn.active {
+    background: linear-gradient(135deg, rgba(232,184,109,.2), rgba(201,125,232,.2));
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo" id="logoText" data-i18n="logoText">Kana Mastery Trainer</div>
+    <div class="title">Kana Mastery Trainer</div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="langZh" onclick="setLang('zh')" data-i18n="langZh">中文</button>
+      <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+    </div>
+    <div style="font-size:10px;color:var(--muted);opacity:.6;margin-top:6px;line-height:1.6;letter-spacing:0.5px;">© 2026 第零乐章. All rights reserved. · v1.5<br>This project is for demonstration and personal use only.</div>
+  </header>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="navChart" onclick="showPage('chart')">📊 五十音图</button>
+    <button class="nav-tab" id="navPractice" onclick="showPage('practice')" data-i18n="navPractice">✏️ 练习</button>
+    <button class="nav-tab" id="navNotebook" onclick="showPage('notebook')">📕 错题本<span class="tab-badge" id="tabBadge">0</span></button>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-page show" id="chartPage">
+    <div class="chart-toggle">
+      <button class="chart-toggle-btn active" id="ctHira" onclick="setChart('hira',this)" data-i18n="chartHira">平假名 ひらがな</button>
+      <button class="chart-toggle-btn" id="ctKata" onclick="setChart('kata',this)" data-i18n="chartKata">片假名 カタカナ</button>
+      <button class="chart-toggle-btn" id="ctBoth" onclick="setChart('both',this)" data-i18n="chartBoth">对照</button>
+    </div>
+    <div class="chart-wrap"><table class="kana-table" id="kanaTable"></table></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:2px;">
+      <div id="dakutenLabel" data-i18n="dakutenLabel" style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent2);text-transform:uppercase;">浊音・半浊音</div>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+    <div class="chart-wrap"><table class="kana-table" id="dakutenTable"></table></div>
+    <div class="chart-legend">
+      <div class="legend-item" id="legendNormal"><div class="legend-dot normal"></div> 普通</div>
+      <div class="legend-item" id="legendMistake"><div class="legend-dot mistake"></div> 错题本中（红色）</div>
+    </div>
+    <div id="chartNote" style="font-size:11px;color:var(--muted);line-height:1.7;padding:0 2px;"></div>
+  </div>
+
+  <!-- PRACTICE -->
+  <div id="practicePage" style="display:none;flex-direction:column;gap:14px">
+    <div class="section-label" id="sectionRange" data-i18n="sectionRange">练习范围</div>
+    <div class="settings-row" style="margin-bottom:6px;">
+      <button class="tag-btn" id="qs-hira" onclick="toggleGroupSet('hira',this)" data-i18n="qsHira">平假名</button>
+      <button class="tag-btn" id="qs-hira-daku" onclick="toggleGroupSet('hira-daku',this)" data-i18n="qsHiraDaku">平假名浊音</button>
+      <button class="tag-btn" id="qs-kata" onclick="toggleGroupSet('kata',this)" data-i18n="qsKata">片假名</button>
+      <button class="tag-btn" id="qs-kata-daku" onclick="toggleGroupSet('kata-daku',this)" data-i18n="qsKataDaku">片假名浊音</button>
+    </div>
+    <div class="settings-row" id="groupBtns"></div>
+
+    <div class="section-label" id="sectionType" data-i18n="sectionType">题型</div>
+    <div class="practice-mode-toggle">
+      <button class="pm-btn active" id="pmChoice" onclick="setPracticeMode('choice',this)" data-i18n="pmChoice">选择题</button>
+      <button class="pm-btn" id="pmFillin" onclick="setPracticeMode('fillin',this)" data-i18n="pmFillin">✏️ 填空题</button>
+    </div>
+
+    <div class="section-label" id="sectionDir" data-i18n="sectionDir">出题方向</div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode('kana2romaji',this)" id="modeK2R" data-i18n="dirK2R">假名 → 罗马字</button>
+      <button class="mode-tab" onclick="setMode('romaji2kana',this)" id="modeR2K" data-i18n="dirR2K">罗马字 → 假名</button>
+      <button class="mode-tab" onclick="setMode('mixed',this)" id="modeMix" data-i18n="dirMix">混合</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-value accent" id="statScore">0</div><div class="stat-label" data-i18n="statScore">得分</div></div>
+      <div class="stat-card"><div class="stat-value correct" id="statCorrect">0</div><div class="stat-label" data-i18n="statCorrect">正确</div></div>
+      <div class="stat-card"><div class="stat-value wrong" id="statWrong">0</div><div class="stat-label" data-i18n="statWrong">错误</div></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    <div class="mastery-bar-wrap">
+      <span class="mastery-label" data-i18n="masteryLabel">🌸 已掌握</span>
+      <div class="mastery-bar-track"><div class="mastery-bar-fill" id="masteryBarFill" style="width:0%"></div></div>
+      <span class="mastery-count" id="masteryCount">0</span>
+    </div>
+
+    <div class="setting-btns">
+      <button class="setting-btn" id="includeMasteredBtn" onclick="toggleIncludeMastered(this)" data-i18n="btnNoMastered">不含已掌握</button>
+      <button class="setting-btn danger" onclick="resetMastery()" data-i18n="btnReset">重置熟练度</button>
+    </div>
+
+    <div class="review-banner" id="reviewBanner" style="display:none">
+      📕 错题复习模式 <button onclick="exitReview()" data-i18n="exitReview">退出复习</button>
+    </div>
+
+    <div class="mastered-notice" id="masteredNotice">
+      <div class="mastered-notice-icon">🌸</div>
+      <div class="mastered-notice-title" data-i18n="masteredNoticeTitle">全部掌握了！</div>
+      <div class="mastered-notice-sub" id="masteredNoticeSub">这组假名已经完全掌握。<br>可以选择更多行组继续练习，或开启「包含已掌握」来复习。</div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+      <div class="question-card">
+        <div class="question-type" id="questionType">问题</div>
+        <div class="kana-display" id="kanaDisplay">?</div>
+        <div class="hint-text" id="hintText"></div>
+        <div id="scoreBadge" style="text-align:center;margin-top:8px;"></div>
+      </div>
+      <div class="options-grid" id="optionsGrid"></div>
+      <div class="fillin-wrap" id="fillinWrap" style="display:none">
+        <input class="fillin-input" id="fillinInput" type="text"
+               autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+               placeholder="输入罗马字，如 ka" id="fillinInputPlaceholder"
+               onkeydown="if(event.key==='Enter')submitFillin()">
+        <button class="fillin-submit" id="fillinSubmit" onclick="submitFillin()">→</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="confuse-panel" id="confusePanel">
+        <div class="confuse-panel-title" data-i18n="confuseTitle">⚠️ 容易混淆</div>
+        <div class="confuse-chars" id="confuseChars"></div>
+        <div class="confuse-tip-text" id="confuseTipText"></div>
+      </div>
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()" data-i18n="nextBtn">下一题 →</button>
+    </div>
+
+    <div class="score-screen" id="scoreScreen">
+      <div class="question-card">
+        <div class="question-type" id="scoreTitle" data-i18n="scoreTitle">练习完成！</div>
+        <div class="score-big" id="finalScore">0</div>
+        <div class="score-msg" id="scoreMsg"></div>
+      </div>
+      <div class="score-btns">
+        <button class="restart-btn" onclick="restartGame()" data-i18n="restart">再来一次 ↺</button>
+        <button class="review-btn" id="reviewFromScoreBtn" onclick="startReview()" data-i18n="reviewMistakes">复习错题 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTEBOOK -->
+  <div class="notebook-page" id="notebookPage">
+    <div class="notebook-header">
+      <div class="notebook-title" data-i18n="nbTitle">📕 错题本</div>
+      <div class="notebook-actions">
+        <button class="nb-btn primary" id="reviewAllBtn" onclick="startReview()" data-i18n="nbReviewAll">全部复习</button>
+        <button class="nb-btn" data-i18n="nbClear" onclick="clearAllMistakes()">清空</button>
+      </div>
+    </div>
+    <div id="notebookContent"></div>
+  </div>
+
+  <!-- Custom confirm dialog -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <div class="confirm-title" id="confirmTitle"></div>
+      <div class="confirm-msg" id="confirmMsg"></div>
+      <div class="confirm-btns">
+        <button class="confirm-cancel" id="confirmCancelBtn" onclick="hideConfirm()" data-i18n="confirmCancel">取消</button>
+        <button class="confirm-ok" id="confirmOkBtn" data-i18n="confirmOk">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QWERTY Keyboard -->
+  <div class="qwerty-wrap" id="qwertyWrap">
+    <div class="qwerty-display" id="qwertyDisplay" onclick="qwertyFocus()">
+      <span class="placeholder" id="qwertyPlaceholder">输入罗马字，如 ka</span>
+    </div>
+    <div class="qwerty-row">
+      <button class="qkey" onclick="qkey('q')">q</button>
+      <button class="qkey" onclick="qkey('w')">w</button>
+      <button class="qkey" onclick="qkey('e')">e</button>
+      <button class="qkey" onclick="qkey('r')">r</button>
+      <button class="qkey" onclick="qkey('t')">t</button>
+      <button class="qkey" onclick="qkey('y')">y</button>
+      <button class="qkey" onclick="qkey('u')">u</button>
+      <button class="qkey" onclick="qkey('i')">i</button>
+      <button class="qkey" onclick="qkey('o')">o</button>
+      <button class="qkey" onclick="qkey('p')">p</button>
+    </div>
+    <div class="qwerty-row">
+      <button class="qkey" onclick="qkey('a')">a</button>
+      <button class="qkey" onclick="qkey('s')">s</button>
+      <button class="qkey" onclick="qkey('d')">d</button>
+      <button class="qkey" onclick="qkey('f')">f</button>
+      <button class="qkey" onclick="qkey('g')">g</button>
+      <button class="qkey" onclick="qkey('h')">h</button>
+      <button class="qkey" onclick="qkey('j')">j</button>
+      <button class="qkey" onclick="qkey('k')">k</button>
+      <button class="qkey" onclick="qkey('l')">l</button>
+    </div>
+    <div class="qwerty-row">
+      <button class="qkey" onclick="qkey('z')">z</button>
+      <button class="qkey" onclick="qkey('x')">x</button>
+      <button class="qkey" onclick="qkey('c')">c</button>
+      <button class="qkey" onclick="qkey('v')">v</button>
+      <button class="qkey" onclick="qkey('b')">b</button>
+      <button class="qkey" onclick="qkey('n')">n</button>
+      <button class="qkey" onclick="qkey('m')">m</button>
+      <button class="qkey del" onclick="qkeyDel()">⌫</button>
+    </div>
+    <div class="qwerty-row">
+      <button class="qkey" id="qkey-kana" style="flex:1;max-width:60px;font-size:13px;font-family:-apple-system,sans-serif;background:#252035;color:var(--muted);" onclick="switchToFlick()">かな</button>
+      <button class="qkey wide" onclick="qkeyMove(-1)">◀</button>
+      <button class="qkey wide" onclick="qkeyMove(1)">▶</button>
+      <button class="qkey" id="qkey-space" style="flex:3;max-width:200px;" onclick="qkey(' ')" data-i18n="spaceKey">空格</button>
+      <button class="qkey action" id="qkey-confirm" onclick="qkeySubmit()" data-i18n="confirmKey">确认</button>
+    </div>
+  </div>
+
+  <!-- Flick Keyboard -->
+  <div class="flick-wrap" id="flickWrap">
+    <div class="flick-display" id="flickDisplay">
+      <span class="fplaceholder">输入假名…</span>
+    </div>
+    <div class="flick-grid">
+      <div class="fkey-wrap" style="grid-row:span 3;display:flex;align-items:stretch">
+        <button class="fkey fkey-kana-toggle" id="fk-kana-toggle" onclick="flickToggleKana()" style="width:68px;height:100%;flex-direction:column;gap:4px;font-size:14px;">
+          <span id="fk-toggle-top" style="font-family:'Noto Serif JP',serif;font-size:18px;">あ</span>
+          <span style="font-size:9px;color:var(--muted);">/ ア</span>
+        </button>
+      </div>
+      <div class="fkey-wrap"><button class="fkey" data-row="a" id="fk-a">あ</button></div>
+      <div class="fkey-wrap"><button class="fkey" data-row="ka" id="fk-ka">か</button></div>
+      <div class="fkey-wrap"><button class="fkey" data-row="sa" id="fk-sa">さ</button></div>
+      <div class="fkey-wrap"><button class="fkey fkey-del" onclick="flickDel()">⌫</button></div>
+
+      <div class="fkey-wrap"><button class="fkey" data-row="ta" id="fk-ta">た</button></div>
+      <div class="fkey-wrap"><button class="fkey" data-row="na" id="fk-na">な</button></div>
+      <div class="fkey-wrap"><button class="fkey" data-row="ha" id="fk-ha">は</button></div>
+      <div class="fkey-wrap" style="grid-row:span 2;display:flex"><button class="fkey" id="fk-submit" style="width:68px;height:141px;" onclick="flickSubmit()" data-i18n="flickConfirm">确认</button></div>
+
+      <div class="fkey-wrap"><button class="fkey" data-row="ma" id="fk-ma">ま</button></div>
+      <div class="fkey-wrap"><button class="fkey" data-row="ya" id="fk-ya">や</button></div>
+      <div class="fkey-wrap"><button class="fkey" data-row="ra" id="fk-ra">ら</button></div>
+    </div>
+    <div class="flick-bottom">
+      <button class="fkey fkey-abc" onclick="switchToQwerty()">ABC</button>
+      <button class="fkey fkey-mod" id="fk-mod" onclick="flickMod()">小゛゜</button>
+      <button class="fkey" data-row="wa" id="fk-wa">わ</button>
+      <button class="fkey fkey-nav2" onclick="flickMove(-1)">◀</button>
+      <button class="fkey fkey-nav2" onclick="flickMove(1)">▶</button>
+    </div>
+  </div>
+
+  <!-- Flick popup overlay -->
+  <div class="flick-popup" id="flickPopup">
+    <div class="flick-popup-inner" id="flickPopupInner"></div>
+  </div>
+
+  <div class="after-answer-bar" id="afterAnswerBar">
+    <div class="bar-feedback" id="barFeedback"></div>
+    <button class="bar-next" id="barNextBtn" onclick="nextQuestion()" data-i18n="nextBtn">下一题 →</button>
+  </div>
+</div>
+
+<script>
+/* ── DATA ── */
+const CHART_ROWS=[
+  ['あ/ア',['あ','ア','a'],['い','イ','i'],['う','ウ','u'],['え','エ','e'],['お','オ','o']],
+  ['か/カ',['か','カ','ka'],['き','キ','ki'],['く','ク','ku'],['け','ケ','ke'],['こ','コ','ko']],
+  ['さ/サ',['さ','サ','sa'],['し','シ','shi'],['す','ス','su'],['せ','セ','se'],['そ','ソ','so']],
+  ['た/タ',['た','タ','ta'],['ち','チ','chi'],['つ','ツ','tsu'],['て','テ','te'],['と','ト','to']],
+  ['な/ナ',['な','ナ','na'],['に','ニ','ni'],['ぬ','ヌ','nu'],['ね','ネ','ne'],['の','ノ','no']],
+  ['は/ハ',['は','ハ','ha'],['ひ','ヒ','hi'],['ふ','フ','fu'],['へ','ヘ','he'],['ほ','ホ','ho']],
+  ['ま/マ',['ま','マ','ma'],['み','ミ','mi'],['む','ム','mu'],['め','メ','me'],['も','モ','mo']],
+  ['や/ヤ',['や','ヤ','ya'],null,['ゆ','ユ','yu'],null,['よ','ヨ','yo']],
+  ['ら/ラ',['ら','ラ','ra'],['り','リ','ri'],['る','ル','ru'],['れ','レ','re'],['ろ','ロ','ro']],
+  ['わ/ワ',['わ','ワ','wa'],['ゐ','ヰ','wi'],null,['ゑ','ヱ','we'],['を','ヲ','wo']],
+  ['ん/ン',['ん','ン','n'],null,null,null,null],
+];
+const DAKUTEN_ROWS=[
+  ['が/ガ',['が','ガ','ga'],['ぎ','ギ','gi'],['ぐ','グ','gu'],['げ','ゲ','ge'],['ご','ゴ','go']],
+  ['ざ/ザ',['ざ','ザ','za'],['じ','ジ','ji'],['ず','ズ','zu'],['ぜ','ゼ','ze'],['ぞ','ゾ','zo']],
+  ['だ/ダ',['だ','ダ','da'],['ぢ','ヂ','ji'],['づ','ヅ','zu'],['で','デ','de'],['ど','ド','do']],
+  ['ば/バ',['ば','バ','ba'],['び','ビ','bi'],['ぶ','ブ','bu'],['べ','ベ','be'],['ぼ','ボ','bo']],
+  ['ぱ/パ',['ぱ','パ','pa'],['ぴ','ピ','pi'],['ぷ','プ','pu'],['ぺ','ペ','pe'],['ぽ','ポ','po']],
+];
+const VOWEL_HEADERS=['','a','i','u','e','o'];
+const KANA_DATA={
+  'あ行':[['あ','a'],['い','i'],['う','u'],['え','e'],['お','o']],
+  'か行':[['か','ka'],['き','ki'],['く','ku'],['け','ke'],['こ','ko']],
+  'さ行':[['さ','sa'],['し','shi'],['す','su'],['せ','se'],['そ','so']],
+  'た行':[['た','ta'],['ち','chi'],['つ','tsu'],['て','te'],['と','to']],
+  'な行':[['な','na'],['に','ni'],['ぬ','nu'],['ね','ne'],['の','no']],
+  'は行':[['は','ha'],['ひ','hi'],['ふ','fu'],['へ','he'],['ほ','ho']],
+  'ま行':[['ま','ma'],['み','mi'],['む','mu'],['め','me'],['も','mo']],
+  'や行':[['や','ya'],['ゆ','yu'],['よ','yo']],
+  'ら行':[['ら','ra'],['り','ri'],['る','ru'],['れ','re'],['ろ','ro']],
+  'わ行':[['わ','wa'],['を','wo'],['ん','n']],
+  'ア行':[['ア','a'],['イ','i'],['ウ','u'],['エ','e'],['オ','o']],
+  'カ行':[['カ','ka'],['キ','ki'],['ク','ku'],['ケ','ke'],['コ','ko']],
+  'サ行':[['サ','sa'],['シ','shi'],['ス','su'],['セ','se'],['ソ','so']],
+  'タ行':[['タ','ta'],['チ','chi'],['ツ','tsu'],['テ','te'],['ト','to']],
+  'ナ行':[['ナ','na'],['ニ','ni'],['ヌ','nu'],['ネ','ne'],['ノ','no']],
+  'ハ行':[['ハ','ha'],['ヒ','hi'],['フ','fu'],['ヘ','he'],['ホ','ho']],
+  'マ行':[['マ','ma'],['ミ','mi'],['ム','mu'],['メ','me'],['モ','mo']],
+  'ヤ行':[['ヤ','ya'],['ユ','yu'],['ヨ','yo']],
+  'ラ行':[['ラ','ra'],['リ','ri'],['ル','ru'],['レ','re'],['ロ','ro']],
+  'ワ行':[['ワ','wa'],['ヲ','wo'],['ン','n']],
+  'が行':[['が','ga'],['ぎ','gi'],['ぐ','gu'],['げ','ge'],['ご','go']],
+  'ざ行':[['ざ','za'],['じ','ji'],['ず','zu'],['ぜ','ze'],['ぞ','zo']],
+  'だ行':[['だ','da'],['ぢ','ji'],['づ','zu'],['で','de'],['ど','do']],
+  'ば行':[['ば','ba'],['び','bi'],['ぶ','bu'],['べ','be'],['ぼ','bo']],
+  'ぱ行':[['ぱ','pa'],['ぴ','pi'],['ぷ','pu'],['ぺ','pe'],['ぽ','po']],
+  'ガ行':[['ガ','ga'],['ギ','gi'],['グ','gu'],['ゲ','ge'],['ゴ','go']],
+  'ザ行':[['ザ','za'],['ジ','ji'],['ズ','zu'],['ゼ','ze'],['ゾ','zo']],
+  'ダ行':[['ダ','da'],['ヂ','ji'],['ヅ','zu'],['デ','de'],['ド','do']],
+  'バ行':[['バ','ba'],['ビ','bi'],['ブ','bu'],['ベ','be'],['ボ','bo']],
+  'パ行':[['パ','pa'],['ピ','pi'],['プ','pu'],['ペ','pe'],['ポ','po']],
+};
+const HOMOPHONES={'ji':['じ','ぢ','ジ','ヂ'],'zu':['ず','づ','ズ','ヅ']};
+const CONFUSABLES={
+  'あ':[['お','o']],'お':[['あ','a'],['を','wo']],'を':[['お','o']],
+  'め':[['ぬ','nu'],['ね','ne']],'ぬ':[['め','me'],['ね','ne']],'ね':[['め','me'],['ぬ','nu'],['れ','re']],
+  'れ':[['ね','ne'],['わ','wa']],'わ':[['れ','re']],'る':[['ろ','ro']],'ろ':[['る','ru']],
+  'い':[['り','ri'],['に','ni']],'に':[['い','i'],['り','ri']],'り':[['い','i'],['に','ni']],
+  'て':[['こ','ko']],'こ':[['て','te']],'き':[['さ','sa']],'さ':[['き','ki'],['ち','chi']],
+  'は':[['ほ','ho'],['へ','he'],['ば','ba'],['ぱ','pa']],'ほ':[['は','ha'],['ふ','fu'],['ぼ','bo'],['ぽ','po']],
+  'へ':[['は','ha'],['ほ','ho'],['べ','be'],['ぺ','pe']],
+  'ふ':[['ほ','ho'],['ひ','hi'],['ぶ','bu'],['ぷ','pu']],'ひ':[['ふ','fu'],['ほ','ho'],['び','bi'],['ぴ','pi']],
+  'ん':[['ぬ','nu'],['め','me']],
+  'し':[['ち','chi'],['す','su'],['じ','ji']],'ち':[['し','shi'],['つ','tsu']],
+  'つ':[['ち','chi'],['す','su']],'す':[['つ','tsu'],['し','shi'],['ず','zu']],
+  'が':[['か','ka']],'か':[['が','ga']],'ぎ':[['き','ki']],'ぎ2':[],'ざ':[['さ','sa']],'じ':[['し','shi']],
+  'ず':[['す','su']],'だ':[['た','ta']],'ば':[['は','ha'],['ぱ','pa']],'ぱ':[['は','ha'],['ば','ba']],
+  'び':[['ひ','hi'],['ぴ','pi']],'ぴ':[['ひ','hi'],['び','bi']],
+  'ぶ':[['ふ','fu'],['ぷ','pu']],'ぷ':[['ふ','fu'],['ぶ','bu']],
+  'べ':[['へ','he'],['ぺ','pe']],'ぺ':[['へ','he'],['べ','be']],
+  'ぼ':[['ほ','ho'],['ぽ','po']],'ぽ':[['ほ','ho'],['ぼ','bo']],
+  'ソ':[['ン','n'],['リ','ri']],'ン':[['ソ','so'],['シ','shi']],'シ':[['ツ','tsu'],['ン','n']],'ツ':[['シ','shi'],['ソ','so']],
+  'ク':[['タ','ta'],['フ','fu']],'タ':[['ク','ku'],['ヌ','nu']],'ヌ':[['タ','ta'],['ス','su']],
+  'テ':[['ア','a'],['チ','chi']],'ア':[['テ','te'],['マ','ma']],'チ':[['テ','te'],['ナ','na']],'ナ':[['チ','chi'],['テ','te']],
+  'コ':[['ユ','yu'],['フ','fu']],'ユ':[['コ','ko'],['ロ','ro']],'ウ':[['ラ','ra'],['フ','fu']],'ラ':[['ウ','u'],['フ','fu']],
+  'リ':[['ソ','so'],['ン','n']],'ワ':[['ク','ku'],['ウ','u']],'ハ':[['ヘ','he'],['ヒ','hi'],['バ','ba'],['パ','pa']],
+  'ヒ':[['ハ','ha'],['ヘ','he'],['ビ','bi'],['ピ','pi']],'ヘ':[['ハ','ha'],['ヒ','hi'],['ベ','be'],['ペ','pe']],
+  'フ':[['ク','ku'],['コ','ko']],'ミ':[['マ','ma'],['ニ','ni']],'マ':[['ア','a'],['ミ','mi']],'ニ':[['ミ','mi'],['テ','te']],
+  'ス':[['ヌ','nu'],['ク','ku'],['ズ','zu']],'ガ':[['カ','ka']],'カ':[['ガ','ga']],'ザ':[['サ','sa']],'ジ':[['シ','shi']],
+  'ダ':[['タ','ta']],'バ':[['ハ','ha'],['パ','pa']],'パ':[['ハ','ha'],['バ','ba']],
+};
+const CONFUSE_TIPS={
+  'あ_お':{chars:['あ(a)','お(o)'],tip:'字形非常相近！「あ」上方有两横，「お」中间多一竖勾。',tipEn:'Very similar! 「あ」has two horizontal strokes on top; 「お」has an extra vertical hook in the middle.'},
+  'を_お':{chars:['を(wo)','お(o)'],tip:'「を」只用作助词，读音同「お」，但上方多一横。',tipEn:'「を」is only used as a particle. It sounds like 「お」but has an extra stroke on top.'},
+  'め_ぬ':{chars:['め(me)','ぬ(nu)'],tip:'「め」右侧封口成圈，「ぬ」右下是开放的小尾巴。',tipEn:'「め」closes into a loop on the right; 「ぬ」ends with an open tail at the bottom right.'},
+  'め_ね':{chars:['め(me)','ね(ne)'],tip:'「め」右侧封口，「ね」右下有个完整的圆圈。',tipEn:'「め」closes on the right; 「ね」has a full closed loop at the bottom right.'},
+  'ぬ_ね':{chars:['ぬ(nu)','ね(ne)'],tip:'「ね」右下有完整圆圈，「ぬ」右下是开放尾巴。',tipEn:'「ね」has a complete closed loop at bottom right; 「ぬ」ends with an open tail.'},
+  'る_ろ':{chars:['る(ru)','ろ(ro)'],tip:'「る」末端有收尾圆圈，「ろ」直接结束，没有圆圈。',tipEn:'「る」ends with a small closing loop; 「ろ」just ends — no loop.'},
+  'ね_れ':{chars:['ね(ne)','れ(re)'],tip:'「ね」有个封闭圆圈，「れ」的右边是开放弧线。',tipEn:'「ね」has a closed loop; 「れ」has an open curved stroke on the right.'},
+  'わ_れ':{chars:['わ(wa)','れ(re)'],tip:'「わ」左侧是直线，「れ」左侧略弯，右边是开放弧线。',tipEn:'「わ」has a straight left stroke; 「れ」curves slightly on the left with an open arc on the right.'},
+  'い_り':{chars:['い(i)','り(ri)'],tip:'「い」两笔对称，「り」右笔更长且带弯钩。',tipEn:'「い」has two symmetric strokes; 「り」has a longer right stroke with a hook.'},
+  'に_り':{chars:['に(ni)','り(ri)'],tip:'「に」有上下两横，「り」没有横笔，只有两条弧线。',tipEn:'「に」has top and bottom horizontal strokes; 「り」has none — just two curved lines.'},
+  'に_い':{chars:['に(ni)','い(i)'],tip:'「い」两笔相似，「に」中间多一横连接两笔。',tipEn:'「い」has two similar strokes; 「に」adds a horizontal bar connecting them.'},
+  'て_こ':{chars:['て(te)','こ(ko)'],tip:'「て」末端有弯钩，「こ」是上下两段分开的弧线。',tipEn:'「て」ends with a hook; 「こ」is two separate arcs, top and bottom.'},
+  'は_ほ':{chars:['は(ha)','ほ(ho)'],tip:'「ほ」比「は」多右侧的圆圈部分。',tipEn:'「ほ」is like 「は」but with an extra loop on the right.'},
+  'は_へ':{chars:['は(ha)','へ(he)'],tip:'「へ」形状很简单像个山峰，「は」结构复杂多了。',tipEn:'「へ」is a simple mountain-peak shape; 「は」is much more complex.'},
+  'ほ_ふ':{chars:['ほ(ho)','ふ(fu)'],tip:'「ほ」有两横加圆圈，「ふ」像个小山坡加两点。',tipEn:'「ほ」has two horizontals plus a loop; 「ふ」looks like a hill with two dots below.'},
+  'ふ_ひ':{chars:['ふ(fu)','ひ(hi)'],tip:'「ふ」下方有两点，「ひ」是一条带圈的弧线。',tipEn:'「ふ」has two dots below; 「ひ」is a single curved stroke with a small loop.'},
+  'し_ち':{chars:['し(shi)','ち(chi)'],tip:'「し」是朝左的钩，「ち」上方多一横，读音也不同 shi vs chi。',tipEn:'「し」is a leftward hook; 「ち」adds a horizontal stroke on top. They also sound different: shi vs chi.'},
+  'つ_ち':{chars:['つ(tsu)','ち(chi)'],tip:'「つ」像三点水躺下来，「ち」上有横下有弯钩。',tipEn:'「つ」looks like a lying-down loop; 「ち」has a horizontal stroke on top and a hook below.'},
+  'す_つ':{chars:['す(su)','つ(tsu)'],tip:'「す」下方有个收口圆圈，「つ」没有圆圈，形状更开放。',tipEn:'「す」closes into a loop at the bottom; 「つ」stays open — no loop.'},
+  'ん_ぬ':{chars:['ん(n)','ぬ(nu)'],tip:'「ん」末端向左弯，「ぬ」右下有开放尾巴，别混淆！',tipEn:'「ん」curves left at the end; 「ぬ」has an open tail at bottom right. Easy to mix up!'},
+  'し_じ':{chars:['し(shi)','じ(ji)'],tip:'「じ」就是「し」加浊点゛，读音从 shi 变成 ji。',tipEn:'「じ」is just 「し」with a dakuten ゛— the sound changes from shi to ji.'},
+  'す_ず':{chars:['す(su)','ず(zu)'],tip:'「ず」就是「す」加浊点゛，读音从 su 变成 zu。',tipEn:'「ず」is 「す」with a dakuten ゛— su becomes zu.'},
+  'ソ_ン':{chars:['ソ(so)','ン(n)'],tip:'最高频混淆！「ソ」的短撇偏横，「ン」的短撇偏直。',tipEn:'Most common confusion! 「ソ」has a more horizontal short stroke; 「ン」has a more vertical one.'},
+  'シ_ツ':{chars:['シ(shi)','ツ(tsu)'],tip:'超高频混淆！「シ」三点纵向排列，「ツ」三点横向排列。',tipEn:'Super common mix-up! 「シ」three dots arranged vertically; 「ツ」three dots arranged horizontally.'},
+  'シ_ン':{chars:['シ(shi)','ン(n)'],tip:'「シ」是三点加一长撇，「ン」只有两点加一撇，方向各异。',tipEn:'「シ」has three dots plus a long diagonal; 「ン」has two dots plus a shorter stroke — directions differ.'},
+  'ソ_リ':{chars:['ソ(so)','リ(ri)'],tip:'「リ」是两条竖线，「ソ」是撇加一点，差别明显。',tipEn:'「リ」is two vertical lines; 「ソ」is a diagonal plus a dot — clearly different.'},
+  'ク_タ':{chars:['ク(ku)','タ(ta)'],tip:'「タ」右上角多一横，「ク」没有。',tipEn:'「タ」has an extra horizontal stroke at top right; 「ク」does not.'},
+  'テ_ア':{chars:['テ(te)','ア(a)'],tip:'「ア」左侧有一撇，「テ」没有。',tipEn:'「ア」has a diagonal stroke on the left; 「テ」does not.'},
+  'テ_チ':{chars:['テ(te)','チ(chi)'],tip:'「テ」下方是一横，「チ」下方是一竖，注意底部差异。',tipEn:'「テ」has a horizontal stroke at the bottom; 「チ」has a vertical one — watch the bottom.'},
+  'コ_ユ':{chars:['コ(ko)','ユ(yu)'],tip:'「コ」像反向C加一横，「ユ」中间多一撇。',tipEn:'「コ」looks like a reversed C with a crossbar; 「ユ」adds a diagonal stroke in the middle.'},
+  'ウ_ラ':{chars:['ウ(u)','ラ(ra)'],tip:'「ウ」上方有一点，「ラ」没有，但下方弯钩相似。',tipEn:'「ウ」has a dot on top; 「ラ」does not — but their lower hooks look similar.'},
+  'フ_ク':{chars:['フ(fu)','ク(ku)'],tip:'「フ」像钩子，「ク」右侧有撇，笔画方向不同。',tipEn:'「フ」looks like a hook; 「ク」has a diagonal stroke on the right — different directions.'},
+  'ハ_ヒ':{chars:['ハ(ha)','ヒ(hi)'],tip:'「ハ」是两撇分开，「ヒ」左侧多一横连接。',tipEn:'「ハ」is two separate diagonal strokes; 「ヒ」adds a horizontal bar on the left connecting them.'},
+  'ヒ_ヘ':{chars:['ヒ(hi)','ヘ(he)'],tip:'「ヘ」是单一倒V，「ヒ」左侧带横。',tipEn:'「ヘ」is a single inverted V; 「ヒ」has an extra horizontal stroke on the left.'},
+  'ハ_ヘ':{chars:['ハ(ha)','ヘ(he)'],tip:'「ヘ」是单一山峰，「ハ」是两撇分叉。',tipEn:'「ヘ」is a single mountain peak; 「ハ」is two diverging strokes.'},
+  'マ_ア':{chars:['マ(ma)','ア(a)'],tip:'「マ」下方有横，「ア」左侧有撇，轮廓相近。',tipEn:'「マ」has a horizontal stroke below; 「ア」has a diagonal on the left — similar outlines.'},
+  'ミ_ニ':{chars:['ミ(mi)','ニ(ni)'],tip:'「ニ」是两条平行横线，「ミ」是三条带弧度的横线。',tipEn:'「ニ」is two parallel horizontal lines; 「ミ」is three slightly curved horizontal strokes.'},
+  'ス_ヌ':{chars:['ス(su)','ヌ(nu)'],tip:'「ス」下方有一撇，「ヌ」是交叉结构。',tipEn:'「ス」has a diagonal stroke below; 「ヌ」has a cross-shaped structure.'},
+  'か_が':{chars:['か(ka)','が(ga)'],tip:'「が」就是「か」右上角加浊点゛，读音从 ka 变成 ga。',tipEn:'「が」is simply 「か」with a dakuten ゛— ka becomes ga.'},
+  'き_ぎ':{chars:['き(ki)','ぎ(gi)'],tip:'「ぎ」就是「き」加浊点゛，形状完全一样只差两点。',tipEn:'「ぎ」is 「き」with a dakuten ゛— identical shape, just two extra dots.'},
+  'さ_ざ':{chars:['さ(sa)','ざ(za)'],tip:'「ざ」就是「さ」加浊点゛。',tipEn:'「ざ」is 「さ」with a dakuten ゛.'},
+  'た_だ':{chars:['た(ta)','だ(da)'],tip:'「だ」就是「た」加浊点゛。',tipEn:'「だ」is 「た」with a dakuten ゛.'},
+  'は_ば':{chars:['は(ha)','ば(ba)'],tip:'「ば」是「は」加浊点゛，「ぱ」是加半浊点°，注意区分！',tipEn:`「ば」is 「は」+ dakuten ゛; 「ぱ」is 「は」+ handakuten °. Don't mix the marks!`},
+  'は_ぱ':{chars:['は(ha)','ぱ(pa)'],tip:'「ぱ」是「は」右上角加半浊点°（小圆圈），读音变成 pa。',tipEn:'「ぱ」is 「は」with a handakuten °（small circle）at top right — sounds like pa.'},
+  'ば_ぱ':{chars:['ば(ba)','ぱ(pa)'],tip:'「ば」右上是两个点゛(ba)，「ぱ」右上是小圆圈°(pa)。',tipEn:'「ば」has two dots ゛(ba); 「ぱ」has a small circle °(pa) — check the mark.'},
+  'じ_ぢ':{chars:['じ(ji)','ぢ(ji)'],tip:'「じ」和「ぢ」都读 ji！「じ」属ざ行，「ぢ」属だ行。现代日语中「じ」更常见。',tipEn:`Both 「じ」and 「ぢ」read "ji"! 「じ」belongs to the za-row; 「ぢ」to the da-row. 「じ」is far more common today.`},
+  'ず_づ':{chars:['ず(zu)','づ(zu)'],tip:'「ず」和「づ」都读 zu！「ず」属ざ行，「づ」属だ行。现代日语中「ず」更常见。',tipEn:`Both 「ず」and 「づ」read "zu"! 「ず」belongs to the za-row; 「づ」to the da-row. 「ず」is far more common today.`},
+  'カ_ガ':{chars:['カ(ka)','ガ(ga)'],tip:'「ガ」就是「カ」加浊点゛。',tipEn:'「ガ」is 「カ」with a dakuten ゛.'},
+  'サ_ザ':{chars:['サ(sa)','ザ(za)'],tip:'「ザ」就是「サ」加浊点゛。',tipEn:'「ザ」is 「サ」with a dakuten ゛.'},
+  'シ_ジ':{chars:['シ(shi)','ジ(ji)'],tip:'「ジ」就是「シ」加浊点゛，读音从 shi 变成 ji。',tipEn:'「ジ」is 「シ」with a dakuten ゛— shi becomes ji.'},
+  'タ_ダ':{chars:['タ(ta)','ダ(da)'],tip:'「ダ」就是「タ」加浊点゛。',tipEn:'「ダ」is 「タ」with a dakuten ゛.'},
+  'ハ_バ':{chars:['ハ(ha)','バ(ba)'],tip:'「バ」是「ハ」加浊点゛，「パ」是「ハ」加半浊点°，注意符号！',tipEn:'「バ」is 「ハ」+ dakuten ゛; 「パ」is 「ハ」+ handakuten °. Watch the mark!'},
+  'バ_パ':{chars:['バ(ba)','パ(pa)'],tip:'「バ」右上是两个点゛(ba)，「パ」右上是小圆圈°(pa)。',tipEn:'「バ」has two dots ゛(ba); 「パ」has a circle °(pa).'},
+  'ジ_ヂ':{chars:['ジ(ji)','ヂ(ji)'],tip:'「ジ」和「ヂ」都读 ji，是同音异字，「ジ」更常用。',tipEn:'Both read "ji" — homophones. 「ジ」is far more commonly used.'},
+  'ズ_ヅ':{chars:['ズ(zu)','ヅ(zu)'],tip:'「ズ」和「ヅ」都读 zu，是同音异字，「ズ」更常用。',tipEn:'Both read "zu" — homophones. 「ズ」is far more commonly used.'},
+};
+
+function getConfuseTipForPair(a,b){return CONFUSE_TIPS[a+'_'+b]||CONFUSE_TIPS[b+'_'+a]||null;}
+function getHomophoneKana(r){return HOMOPHONES[r]||[];}
+
+function getWrongOptions(correct,count){
+  const allPool=getAllKana(),localPool=getPool().length>=6?getPool():allPool;
+  const homophoneKana=getHomophoneKana(correct[1]).filter(k=>k!==correct[0]);
+  const confused=CONFUSABLES[correct[0]]||[];
+  let confuseItem=null;
+  for(const[ck]of confused){
+    if(homophoneKana.includes(ck))continue;
+    const found=allPool.find(p=>p[0]===ck);
+    if(found&&found[0]!==correct[0]&&found[1]!==correct[1]){confuseItem=found;break;}
+  }
+  const others=localPool.filter(p=>p[0]!==correct[0]&&p[1]!==correct[1]&&!homophoneKana.includes(p[0])&&(!confuseItem||p[0]!==confuseItem[0]));
+  const randoms=shuffle(others).slice(0,confuseItem?count-1:count);
+  return confuseItem?[confuseItem,...randoms]:randoms;
+}
+
+/* ── CHART ── */
+let chartMode='hira';
+function setChart(mode,btn){chartMode=mode;document.querySelectorAll('.chart-toggle-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderChart();}
+function renderChart(){
+  const mistakes=loadMistakes();
+  function buildTable(rows,tableId){
+    const table=document.getElementById(tableId);if(!table)return;
+    let html='<thead><tr>';VOWEL_HEADERS.forEach((v,i)=>{html+=`<th>${i===0?'':v}</th>`;});html+='</tr></thead><tbody>';
+    rows.forEach(row=>{
+      html+=`<tr><td class="row-header">${row[0].replace('/','<br>')}</td>`;
+      for(let c=1;c<=5;c++){
+        const cell=row[c];
+        if(!cell){html+=`<td class="kana-cell empty"><span class="cell-kana" style="font-size:18px;opacity:.2">—</span></td>`;continue;}
+        const[hira,kata,romaji]=cell,hiM=!!mistakes[hira],kaM=!!mistakes[kata];
+        if(chartMode==='hira')html+=`<td class="kana-cell ${hiM?'is-mistake':''}"><span class="${hiM?'cell-kana mistake-char':'cell-kana'}">${hira}</span><span class="cell-romaji">${romaji}</span></td>`;
+        else if(chartMode==='kata')html+=`<td class="kana-cell ${kaM?'is-mistake':''}"><span class="${kaM?'cell-kana mistake-char':'cell-kana'}">${kata}</span><span class="cell-romaji">${romaji}</span></td>`;
+        else html+=`<td class="kana-cell ${(hiM||kaM)?'is-mistake':''}"><div class="cell-both"><span class="${hiM?'cell-kana mistake-char':'cell-kana'}">${hira}</span><span class="${kaM?'cell-kana mistake-char':'cell-kana'}">${kata}</span><span class="cell-romaji">${romaji}</span></div></td>`;
+      }
+      html+='</tr>';
+    });
+    html+='</tbody>';table.innerHTML=html;
+  }
+  buildTable(CHART_ROWS,'kanaTable');buildTable(DAKUTEN_ROWS,'dakutenTable');
+}
+
+/* ── PAGES ── */
+function showPage(page){
+  document.getElementById('chartPage').classList.toggle('show',page==='chart');
+  document.getElementById('chartPage').style.display=page==='chart'?'flex':'none';
+  document.getElementById('practicePage').style.display=page==='practice'?'flex':'none';
+  document.getElementById('notebookPage').classList.toggle('show',page==='notebook');
+  document.getElementById('notebookPage').style.display=page==='notebook'?'flex':'none';
+  ['navChart','navPractice','navNotebook'].forEach((id,i)=>document.getElementById(id).classList.toggle('active',['chart','practice','notebook'][i]===page));
+  if(page!=='practice'){
+    showQwerty(false);showFlick(false);
+  } else if(practiceMode==='fillin' && currentItem && !answered) {
+    // Restore keyboard when returning to practice
+    const useQwerty = currentDirection==='kana2romaji';
+    const useFlick  = currentDirection==='romaji2kana';
+    showQwerty(useQwerty);
+    showFlick(useFlick);
+    setTimeout(scrollToCard, 0);
+  }
+  if(page==='notebook')renderNotebook();
+  if(page==='chart')renderChart();
+}
+
+/* ── MISTAKES ── */
+function loadMistakes(){try{return JSON.parse(localStorage.getItem('kana_mistakes')||'{}');}catch{return{};}}
+function saveMistakes(m){try{localStorage.setItem('kana_mistakes',JSON.stringify(m));}catch{}}
+function addMistake(kana,romaji){const m=loadMistakes();if(m[kana])m[kana].count++;else m[kana]={kana,romaji,count:1};saveMistakes(m);updateBadge();}
+function removeMistake(kana){const m=loadMistakes();delete m[kana];saveMistakes(m);updateBadge();renderNotebook();}
+function clearAllMistakes(){showConfirm(t('confirmClearTitle'),t('confirmClearMsg'),()=>{saveMistakes({});updateBadge();renderNotebook();});}
+function updateBadge(){
+  const count=Object.keys(loadMistakes()).length;
+  const badge=document.getElementById('tabBadge');
+  if(count>0){badge.textContent=count;badge.classList.add('show');}else badge.classList.remove('show');
+  const rb=document.getElementById('reviewFromScoreBtn');if(rb)rb.disabled=count===0;
+  const ra=document.getElementById('reviewAllBtn');if(ra)ra.disabled=count===0;
+  if(document.getElementById('chartPage').classList.contains('show'))renderChart();
+}
+function renderNotebook(){
+  const m=loadMistakes(),keys=Object.keys(m),wrap=document.getElementById('notebookContent');
+  if(keys.length===0){wrap.innerHTML=`<div class="nb-empty"><div class="nb-empty-icon">🎉</div><div class="nb-empty-title">${t('nbEmpty')}</div><div class="nb-empty-sub">${t('nbEmptySub').replace('\n','<br>')}</div></div>`;return;}
+  const sorted=keys.map(k=>m[k]).sort((a,b)=>b.count-a.count);
+  wrap.innerHTML=`<div class="nb-info">${t('nbInfo', keys.length)}</div><div class="mistake-grid">${sorted.map(item=>`<div class="mistake-card"><span class="mistake-count">${item.count}</span><div class="mistake-kana">${item.kana}</div><div class="mistake-romaji">${item.romaji}</div><button class="mistake-remove" onclick="removeMistake('${item.kana}')">✕</button></div>`).join('')}</div>`;
+}
+
+/* ── SRS ── */
+const REVIEW_INTERVALS=[0,1,3,7,14,30],MASTERY_THRESHOLD=10,MASTERY_FALLBACK=6;
+function loadSRS(){try{return JSON.parse(localStorage.getItem('kana_srs')||'{}');}catch{return{};}}
+function saveSRS(d){try{localStorage.setItem('kana_srs',JSON.stringify(d));}catch{}}
+function getSRSEntry(kana,romaji){const d=loadSRS();if(!d[kana])d[kana]={kana,romaji,score:0,mastered:false,reviewLevel:0,nextReview:null};return d[kana];}
+function updateSRSEntry(kana,isCorrect,isFillIn){
+  const d=loadSRS();
+  if(!d[kana]){const f=getAllKana().find(p=>p[0]===kana);d[kana]={kana,romaji:f?f[1]:'',score:0,mastered:false,reviewLevel:0,nextReview:null};}
+  const e=d[kana];
+  const baseDelta = isFillIn?(isCorrect?2:-2):(isCorrect?1:-1);
+  const multiplier = isCorrect ? getSpeedMultiplier(isFillIn) : 1;
+  const delta = isCorrect ? baseDelta * multiplier : baseDelta;
+  e.score+=delta;
+  if(e.mastered){
+    if(isCorrect)e.reviewLevel=Math.min(e.reviewLevel+1,REVIEW_INTERVALS.length-1);
+    else{e.mastered=false;e.score=MASTERY_FALLBACK;e.reviewLevel=Math.max(e.reviewLevel-1,0);}
+    e.nextReview=Date.now()+REVIEW_INTERVALS[e.reviewLevel]*86400000;
+  }else if(e.score>=MASTERY_THRESHOLD){e.mastered=true;e.reviewLevel=1;e.nextReview=Date.now()+REVIEW_INTERVALS[1]*86400000;}
+  d[kana]=e;saveSRS(d);updateMasteryBar();
+}
+function penalizeConfuseGroup(kana){
+  const d=loadSRS(),ap=getAllKana(),confused=CONFUSABLES[kana]||[];
+  confused.forEach(([ck])=>{if(!d[ck]){const f=ap.find(p=>p[0]===ck);d[ck]={kana:ck,romaji:f?f[1]:'',score:0,mastered:false,reviewLevel:0,nextReview:null};}d[ck].score-=2;});
+  saveSRS(d);
+}
+function getMasteryStats(){const d=loadSRS(),pool=getPool();return{mastered:pool.filter(item=>d[item[0]]&&d[item[0]].mastered).length,total:pool.length};}
+function updateMasteryBar(){
+  const{mastered,total}=getMasteryStats(),pct=total>0?(mastered/total*100):0;
+  const fill=document.getElementById('masteryBarFill');if(fill)fill.style.width=pct+'%';
+  const count=document.getElementById('masteryCount');if(count)count.textContent=`${mastered}/${total}`;
+}
+
+/* ── SETTINGS ── */
+let includeMastered=false;
+function toggleIncludeMastered(btn){
+  includeMastered=!includeMastered;
+  btn.textContent=includeMastered?t('btnIncMastered'):t('btnNoMastered');
+  btn.classList.toggle('active',includeMastered);
+  if(!isReviewMode)restartGame();
+}
+function showConfirm(title, msg, onOk) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  const okBtn = document.getElementById('confirmOkBtn');
+  okBtn.onclick = () => { hideConfirm(); onOk(); };
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+function hideConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+}
+
+function resetMastery(){
+  showConfirm(t('confirmResetTitle'), t('confirmResetMsg'), () => {
+    saveSRS({}); updateMasteryBar(); restartGame();
+  });
+}
+
+/* ── GAME STATE ── */
+const groupKeys=Object.keys(KANA_DATA);
+let activeGroups=new Set(['あ行','か行','さ行']);
+let currentMode='kana2romaji',practiceMode='choice';
+let score=0,correctCount=0,wrongCount=0,totalRounds=20,currentRound=0;
+let currentAnswer='',currentDirection='kana2romaji',answered=false,isReviewMode=false;
+let currentItem=null,questionQueue=[];
+let questionStartTime=null;
+
+function getPool(){let p=[];activeGroups.forEach(g=>{p=p.concat(KANA_DATA[g]||[]);});return p;}
+function getAllKana(){let p=[];Object.values(KANA_DATA).forEach(g=>p=p.concat(g));return p;}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function buildQueue(){
+  if(isReviewMode)return;
+  const pool=getPool(),d=loadSRS(),now=Date.now();
+  const dueReview=[],negative=[],unmastered=[],masteredOk=[];
+  pool.forEach(item=>{
+    const e=d[item[0]];
+    if(!e){unmastered.push(item);return;}
+    if(e.mastered){(e.nextReview&&now>=e.nextReview?dueReview:masteredOk).push(item);}
+    else{if(e.score<0)negative.push({item,score:e.score});else unmastered.push(item);}
+  });
+  const allDone=unmastered.length===0&&negative.length===0&&dueReview.length===0;
+  if(allDone&&!includeMastered){showMasteredNotice();return;}
+  negative.sort((a,b)=>a.score-b.score);
+  const negItems=negative.map(x=>x.item);
+  let q=[];
+  q=q.concat(shuffle(dueReview).slice(0,6));
+  const negSlots=Math.min(negItems.length*2,8);
+  for(let i=0;i<negSlots;i++)q.push(negItems[i%negItems.length]);
+  const remaining=Math.max(20-q.length,4);
+  q=q.concat(shuffle(unmastered).slice(0,remaining));
+  if(q.length<10&&unmastered.length>0){while(q.length<10)q=q.concat(shuffle(unmastered).slice(0,5));}
+  if(includeMastered&&q.length<10)q=q.concat(shuffle(masteredOk).slice(0,10-q.length));
+  questionQueue=shuffle(q).slice(0,20);totalRounds=questionQueue.length;
+}
+
+function showMasteredNotice(){
+  const notice=document.getElementById('masteredNotice'),gameArea=document.getElementById('gameArea');
+  if(notice)notice.style.display='flex';
+  if(gameArea)gameArea.style.display='none';
+}
+
+function getSpeedMultiplier(isFillIn) {
+  const start = questionStartTime;
+  if (!start) return 1;
+  const elapsed = (Date.now() - start) / 1000; // seconds
+  if (isFillIn) {
+    if (elapsed < 3)  return 1.5;
+    if (elapsed < 7)  return 1;
+    if (elapsed < 12) return 0.5;
+    return 0;
+  } else {
+    if (elapsed < 1.5) return 1.5;
+    if (elapsed < 4.5) return 1;
+    if (elapsed < 7.5) return 0.5;
+    return 0;
+  }
+}
+
+function getKeyboardEl() {
+  const flick = document.getElementById('flickWrap');
+  const qwerty = document.getElementById('qwertyWrap');
+  if (flick && flick.classList.contains('show')) return flick;
+  if (qwerty && qwerty.classList.contains('show')) return qwerty;
+  return null;
+}
+
+// Scroll so nextBtn bottom sits just above the keyboard.
+// smooth=false (default): instant, used on new question load.
+// smooth=true: used after confuse panel appears — content grew, nudge gently.
+function scrollToAnchor(smooth) {
+  const kbEl = getKeyboardEl();
+  const nextBtn = document.getElementById('nextBtn');
+  if (!nextBtn) return;
+  const boundary = kbEl ? (window.innerHeight - kbEl.offsetHeight - 12) : (window.innerHeight - 20);
+  const diff = nextBtn.getBoundingClientRect().bottom - boundary;
+  if (Math.abs(diff) > 1) {
+    window.scrollTo({ top: window.scrollY + diff, behavior: smooth ? 'smooth' : 'instant' });
+  }
+}
+
+function scrollToCard()  { scrollToAnchor(false); }
+function scrollToPanel() { scrollToAnchor(true);  }
+
+function setPracticeMode(mode,btn){
+  practiceMode=mode;
+  document.querySelectorAll('.pm-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  if(!isReviewMode)restartGame();
+  if(mode==="fillin") requestAnimationFrame(scrollToCard);
+}
+function buildGroupBtns(){
+  const wrap=document.getElementById('groupBtns');wrap.innerHTML='';
+  groupKeys.forEach(g=>{const btn=document.createElement('button');btn.className='tag-btn'+(activeGroups.has(g)?' active':'');btn.textContent=currentLang==='en'?g.replace('行',''):g;btn.dataset.group=g;btn.onclick=()=>toggleGroup(g,btn);wrap.appendChild(btn);});
+}
+function toggleGroup(g,btn){
+  if(activeGroups.has(g)){if(activeGroups.size<=1)return;activeGroups.delete(g);btn.classList.remove('active');}
+  else{activeGroups.add(g);btn.classList.add('active');}
+  syncQuickSelectBtns();
+  // Sync all group buttons by data-group
+  document.querySelectorAll('#groupBtns .tag-btn').forEach(b => {
+    const gr = b.dataset.group || b.textContent;
+    b.classList.toggle('active', activeGroups.has(gr));
+  });
+  if(!isReviewMode)restartGame();
+}
+// KANA_DATA group categorization
+const HIRA_GROUPS = ['あ行','か行','さ行','た行','な行','は行','ま行','や行','ら行','わ行'];
+const HIRA_DAKU_GROUPS = ['が行','ざ行','だ行','ば行','ぱ行'];
+const KATA_GROUPS = ['ア行','カ行','サ行','タ行','ナ行','ハ行','マ行','ヤ行','ラ行','ワ行'];
+const KATA_DAKU_GROUPS = ['ガ行','ザ行','ダ行','バ行','パ行'];
+
+const GROUP_SET_MAP = {
+  'hira':      HIRA_GROUPS,
+  'hira-daku': HIRA_DAKU_GROUPS,
+  'kata':      KATA_GROUPS,
+  'kata-daku': KATA_DAKU_GROUPS,
+};
+// Track which sets are active
+const activeSets = new Set(['hira']);
+
+function toggleGroupSet(type, btn) {
+  const groups = GROUP_SET_MAP[type];
+  if (!groups) return;
+  const allOn = groups.every(g => activeGroups.has(g));
+  if (allOn) {
+    // All on → turn off, but keep at least one group active overall
+    const remaining = [...activeGroups].filter(g => !groups.includes(g));
+    if (remaining.length === 0) return; // can't turn off last set
+    groups.forEach(g => activeGroups.delete(g));
+    activeSets.delete(type);
+  } else {
+    // Not all on → turn all on
+    groups.forEach(g => activeGroups.add(g));
+    activeSets.add(type);
+  }
+  // Sync individual group buttons
+  document.querySelectorAll('#groupBtns .tag-btn').forEach(b => {
+    const g = b.dataset.group || b.textContent;
+    b.classList.toggle('active', activeGroups.has(g));
+  });
+  syncQuickSelectBtns();
+  if (!isReviewMode) restartGame();
+}
+
+function syncQuickSelectBtns() {
+  Object.entries(GROUP_SET_MAP).forEach(([type, groups]) => {
+    const btn = document.getElementById('qs-' + type);
+    if (!btn) return;
+    // Active if ALL groups in the set are present
+    const allOn = groups.every(g => activeGroups.has(g));
+    btn.classList.toggle('active', allOn);
+    // Sync activeSets to match reality
+    if (allOn) activeSets.add(type); else activeSets.delete(type);
+  });
+}
+
+function isKataGroup(item) {
+  if (!item) return false;
+  const kana = item[0];
+  return /[ァ-ヴ]/.test(kana);
+}
+
+function setMode(mode,btn){
+  currentMode=mode;
+  document.querySelectorAll('.mode-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  if(!isReviewMode)restartGame();
+}
+
+function nextQuestion(){
+  if(currentRound>=totalRounds){showScore();return;}
+  answered=false;
+  document.getElementById('nextBtn').classList.remove('visible');
+  document.getElementById('feedback').textContent='';document.getElementById('feedback').className='feedback';
+  document.getElementById('confusePanel').classList.remove('show');
+  const fi=document.getElementById('fillinInput');
+  if(fi){fi.value='';fi.className='fillin-input';fi.disabled=false;}
+  const fs=document.getElementById('fillinSubmit');if(fs)fs.disabled=false;
+  document.getElementById('afterAnswerBar').classList.remove('show');
+  const badge=document.getElementById('scoreBadge');if(badge)badge.innerHTML='';
+
+  // Skip mastered items if includeMastered is off
+  while(currentRound < totalRounds) {
+    currentItem = questionQueue[currentRound];
+    if (!includeMastered) {
+      const srsD = loadSRS();
+      if (currentItem && srsD[currentItem[0]] && srsD[currentItem[0]].mastered) {
+        currentRound++; continue;
+      }
+    }
+    break;
+  }
+  if (currentRound >= totalRounds) { showScore(); return; }
+  currentDirection=currentMode;
+  if(isReviewMode||currentDirection==='mixed')currentDirection=Math.random()<.5?'kana2romaji':'romaji2kana';
+
+  if(currentDirection==='romaji2kana'){
+    const hg=HOMOPHONES[currentItem[1]];
+    if(hg){const ap=getAllKana(),cands=hg.map(k=>ap.find(p=>p[0]===k)).filter(Boolean);currentItem=cands[Math.floor(Math.random()*cands.length)];}
+  }
+
+  const srsData=loadSRS();
+  const hasSeen=!!srsData[currentItem[0]]; // true if ever encountered before
+  const entry=getSRSEntry(currentItem[0],currentItem[1]);
+  const badgeEl=document.getElementById('scoreBadge');
+  if(badgeEl){
+    let badgeClass, badgeLabel;
+    const isDueReview = entry.mastered && entry.nextReview && Date.now() >= entry.nextReview;
+    if(entry.mastered && isDueReview) { badgeClass='mastered'; badgeLabel=t('badgeReview'); }
+    else if(entry.mastered)           { badgeClass='mastered'; badgeLabel=t('badgeMastered'); }
+    else if(!hasSeen)                 { badgeClass='zero';     badgeLabel=t('badgeNew'); }
+    else if(entry.score<0)            { badgeClass='negative'; badgeLabel=t('badgeNeedWork'); }
+    else if(entry.score<=3)           { badgeClass='zero';     badgeLabel=t('badgePracticing'); }
+    else if(entry.score<=6)           { badgeClass='positive'; badgeLabel=t('badgeFamiliar'); }
+    else                              { badgeClass='positive'; badgeLabel=t('badgeAlmost'); }
+    badgeEl.innerHTML=`<button class="speak-badge ${badgeClass}" onclick="speakCurrent()"><span class="sb-icon">🔊</span><span class="sb-label">${badgeLabel}</span></button>`;
+  }
+
+  let makeOption;
+  if(currentDirection==='kana2romaji'){
+    currentAnswer=currentItem[1];
+    const isKataQ = isKataGroup(currentItem);
+    const kanaTypeLabelQ = isKataQ ? t('kanaTypeKT') : t('kanaTypePH');
+    const kanaTypeColorQ = isKataQ ? 'var(--accent2)' : 'var(--accent)';
+    document.getElementById('questionType').innerHTML=t('qTypeKana', {name:kanaTypeLabelQ, color:kanaTypeColorQ});
+    document.getElementById('kanaDisplay').style.fontSize='96px';
+    document.getElementById('kanaDisplay').style.fontFamily="'Noto Serif JP','PingFang SC',serif";
+    document.getElementById('kanaDisplay').textContent=currentItem[0];
+    document.getElementById('hintText').textContent='';
+    makeOption=p=>({main:p[1],reveal:p[0],value:p[1]});
+  }else{
+    currentAnswer=currentItem[0];
+    const isKata = isKataGroup(currentItem);
+    const kanaTypeName = isKata ? t('kanaTypeKT') : t('kanaTypePH');
+    const kanaTypeColor = isKata ? 'var(--accent2)' : 'var(--accent)';
+    document.getElementById('questionType').innerHTML=t('qTypeRomaji', {name:kanaTypeName, color:kanaTypeColor});
+    document.getElementById('kanaDisplay').style.fontSize='60px';
+    document.getElementById('kanaDisplay').style.fontFamily="-apple-system,'PingFang SC','Noto Sans JP',sans-serif";
+    document.getElementById('kanaDisplay').textContent=currentItem[1];
+    const hg=HOMOPHONES[currentItem[1]];
+    document.getElementById('hintText').textContent=hg?t('homoHint', hg, currentItem[1]):'';
+    makeOption=p=>({main:p[0],reveal:p[1],value:p[0]});
+  }
+
+  const isFillin=practiceMode==='fillin';
+  const useQwerty = isFillin && currentDirection==='kana2romaji';
+  const useFlick  = isFillin && currentDirection==='romaji2kana';
+  const useSystemKb = false; // replaced by custom keyboards
+  document.getElementById('optionsGrid').style.display=isFillin?'none':'grid';
+  document.getElementById('fillinWrap').style.display='none';
+  showQwerty(useQwerty);
+  showFlick(useFlick);
+
+  if(!isFillin){
+    const wrongs=getWrongOptions(currentItem,3),grid=document.getElementById('optionsGrid');grid.innerHTML='';
+    shuffle([currentItem,...wrongs]).forEach(opt=>{
+      const o=makeOption(opt),btn=document.createElement('button');
+      btn.className='option-btn';
+      btn.innerHTML=`${o.main}<span class="romaji" style="visibility:hidden">${o.reveal}</span>`;
+      btn.dataset.value=o.value;btn.onclick=()=>handleAnswer(o.value,btn);
+      grid.appendChild(btn);
+    });
+  }
+
+  const kd=document.getElementById('kanaDisplay');
+  kd.classList.remove('shake','pop');void kd.offsetWidth;kd.classList.add('pop');
+  updateProgress();currentRound++;
+  questionStartTime = Date.now(); // timer starts when question renders
+  if(practiceMode==='fillin') setTimeout(scrollToCard, 0);
+}
+
+function submitFillin(){
+  if(answered)return;
+  const fi=document.getElementById('fillinInput');
+  const normalize=s=>s.trim().toLowerCase().replace(/[Ａ-Ｚａ-ｚ０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/\u3000/g,' ').trim();
+  const raw=normalize(fi.value);if(!raw)return;
+  const isCorrect=currentDirection==='kana2romaji'?raw===normalize(currentAnswer):raw===currentAnswer.trim()||raw===normalize(currentItem[1]);
+  handleAnswerCore(isCorrect,raw);
+}
+
+function handleAnswer(value,btn){
+  if(answered)return;
+  const isCorrect=value===currentAnswer;
+  document.querySelectorAll('.option-btn').forEach(b=>{b.disabled=true;if(b.dataset.value===currentAnswer)b.classList.add('correct');const sub=b.querySelector('.romaji');if(sub)sub.style.visibility='visible';});
+  if(!isCorrect)btn.classList.add('wrong');
+  handleAnswerCore(isCorrect,value);
+}
+
+function updateProgress(){
+  document.getElementById('progressBar').style.width=((currentRound/totalRounds)*100)+'%';
+}
+
+function handleAnswerCore(isCorrect,chosenValue){
+  if(answered)return;
+  answered=true;
+  const fb=document.getElementById('feedback'),kd=document.getElementById('kanaDisplay'),isFillIn=practiceMode==='fillin';
+  if(isFillIn){
+    const fi=document.getElementById('fillinInput'),fs=document.getElementById('fillinSubmit');
+    if(fi){fi.className='fillin-input '+(isCorrect?'correct':'wrong');fi.disabled=true;}
+    if(fs)fs.disabled=true;
+    if(!isCorrect&&fi)fi.value=currentAnswer;
+  }
+  let justMastered = false, removedFromMistakes = false;
+  if(currentItem){
+    const srsBefore = loadSRS();
+    const wasMastered = srsBefore[currentItem[0]] && srsBefore[currentItem[0]].mastered;
+    updateSRSEntry(currentItem[0],isCorrect,isFillIn);
+    if(!isCorrect){
+      const ap=getAllKana();let ck=chosenValue;
+      if(/^[a-z]+$/.test(chosenValue)){const f=ap.find(p=>p[1]===chosenValue);if(f)ck=f[0];}
+      if((CONFUSABLES[currentItem[0]]||[]).some(([c])=>c===ck))penalizeConfuseGroup(currentItem[0]);
+    }
+    if(isCorrect && !wasMastered){
+      const srsAfter = loadSRS();
+      justMastered = srsAfter[currentItem[0]] && srsAfter[currentItem[0]].mastered;
+      if(justMastered){
+        const ms = loadMistakes();
+        if(ms[currentItem[0]]){
+          removedFromMistakes = true;
+          delete ms[currentItem[0]];
+          saveMistakes(ms);
+          updateBadge();
+        }
+      }
+    }
+  }
+  if(isCorrect){
+    const speedMult = getSpeedMultiplier(isFillIn);
+    const speedTag = speedMult >= 1.5;
+    fb.textContent = justMastered
+      ? (removedFromMistakes ? t('masteredRemoved') : t('mastered'))
+      : (speedTag ? t('correctFast') : t('correct'));
+    fb.className='feedback correct';
+    score+=10;correctCount++;
+    kd.classList.remove('shake','pop');void kd.offsetWidth;kd.classList.add('pop');
+  }else{
+    fb.textContent=t('wrongAnswer', currentAnswer);fb.className='feedback wrong';
+    wrongCount++;
+    kd.classList.remove('shake','pop');void kd.offsetWidth;kd.classList.add('shake');
+    if(currentItem)addMistake(currentItem[0],currentItem[1]);
+    showConfusePanel(currentItem[0],chosenValue);
+  }
+  document.getElementById('statScore').textContent=score;
+  document.getElementById('statCorrect').textContent=correctCount;
+  document.getElementById('statWrong').textContent=wrongCount;
+
+  // No scroll after answer - let position stay stable
+
+  document.getElementById('nextBtn').classList.add('visible');
+}
+function showScore(){
+  showQwerty(false);
+  showFlick(false);
+  document.getElementById('gameArea').style.display='none';
+  document.getElementById('scoreScreen').classList.add('show');
+  document.getElementById('finalScore').textContent=score;
+  const pct=Math.round((correctCount/totalRounds)*100);
+  const msg=pct===100?t('scoreMsg100'):pct>=80?t('scoreMsg80'):pct>=60?t('scoreMsg60'):t('scoreMsg0');
+  const{mastered,total}=getMasteryStats(),mCount=Object.keys(loadMistakes()).length;
+  document.getElementById('scoreMsg').textContent=t('scorePct', pct, msg, mastered, total, mCount);
+  updateBadge();
+}
+
+function resetStats(){
+  score=0;correctCount=0;wrongCount=0;currentRound=0;
+  ['statScore','statCorrect','statWrong'].forEach(id=>document.getElementById(id).textContent=0);
+  document.getElementById('progressBar').style.width='0%';
+  document.getElementById('scoreScreen').classList.remove('show');
+  document.getElementById('gameArea').style.display='flex';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('nextBtn').classList.remove('visible');
+  document.getElementById('confusePanel').classList.remove('show');
+  document.getElementById('afterAnswerBar').classList.remove('show');
+  const badge=document.getElementById('scoreBadge');if(badge)badge.innerHTML='';
+  const fi=document.getElementById('fillinInput');if(fi){fi.value='';fi.className='fillin-input';fi.disabled=false;}
+  showQwerty(false);
+  showFlick(false);
+  const notice=document.getElementById('masteredNotice');if(notice)notice.style.display='none';
+  updateMasteryBar();
+}
+
+function restartGame(){
+  isReviewMode=false;totalRounds=20;
+  document.getElementById('reviewBanner').style.display='none';
+  document.getElementById('scoreTitle').textContent=t('scoreTitle');
+  resetStats();buildQueue();
+  if(questionQueue.length>0)nextQuestion();
+  // If in fillin mode, scroll back to game area
+  if(practiceMode==='fillin'){
+    requestAnimationFrame(scrollToCard);
+  }
+}
+
+function startReview(){
+  const m=loadMistakes(),items=Object.values(m);
+  if(items.length===0){showConfirm(t('confirmReviewEmpty'),t('confirmReviewEmptyMsg'),()=>{});return;}
+  let queue=[];
+  items.forEach(item=>{const t=Math.min(item.count+1,4);for(let i=0;i<t;i++)queue.push([item.kana,item.romaji]);});
+  while(queue.length<10)queue=[...queue,...queue];
+  queue=shuffle(queue).slice(0,Math.max(10,items.length*2));
+  isReviewMode=true;questionQueue=queue;totalRounds=queue.length;
+  document.getElementById('reviewBanner').style.display='flex';
+  document.getElementById('scoreTitle').textContent=t('reviewScoreTitle');
+  resetStats();showPage('practice');nextQuestion();
+}
+
+function exitReview(){
+  isReviewMode=false;totalRounds=20;
+  document.getElementById('reviewBanner').style.display='none';
+  document.getElementById('scoreTitle').textContent=t('scoreTitle');
+  restartGame();
+}
+
+function showConfusePanel(correctKana,chosenValue){
+  const ap=getAllKana();let ck=chosenValue;
+  if(/^[a-z]+$/.test(chosenValue)){const f=ap.find(p=>p[1]===chosenValue);if(f)ck=f[0];}
+  const tip=getConfuseTipForPair(correctKana,ck);
+  const panel=document.getElementById('confusePanel'),charsEl=document.getElementById('confuseChars'),tipEl=document.getElementById('confuseTipText');
+  if(!tip){
+    const ce=ap.find(p=>p[0]===correctKana),he=ap.find(p=>p[0]===ck);
+    if(!ce||!he||correctKana===ck){panel.classList.remove('show');return;}
+    charsEl.innerHTML=makePill(he[0],he[1])+'<span class="confuse-vs">vs</span>'+makePill(ce[0],ce[1]);
+    tipEl.textContent=t('confuseFallback', he[0], he[1], ce[0], ce[1]);
+    panel.classList.add('show');setTimeout(scrollToPanel,0);return;
+  }
+  const pc=s=>{const m=s.match(/^(.+?)\((.+)\)$/);return m?{kana:m[1],romaji:m[2]}:{kana:s,romaji:''};};
+  const pA=pc(tip.chars[0]),pB=pc(tip.chars[1]);
+  charsEl.innerHTML=makePill(pA.kana,pA.romaji)+'<span class="confuse-vs">vs</span>'+makePill(pB.kana,pB.romaji);
+  tipEl.textContent=currentLang==='en'?(tip.tipEn||tip.tip):tip.tip;panel.classList.add('show');
+  setTimeout(scrollToPanel,0);
+}
+function makePill(kana,romaji){return`<div class="confuse-char-pill"><span class="pill-kana">${kana}</span><span class="pill-romaji">${romaji}</span></div>`;}
+
+/* ── AUDIO ── */
+function speakKana(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'ja-JP';
+  utter.rate = 0.85;
+  utter.pitch = 1.0;
+  utter.volume = 1.0;
+  const voices = window.speechSynthesis.getVoices();
+  const jaVoice = voices.find(v => v.lang.startsWith('ja'));
+  if (jaVoice) utter.voice = jaVoice;
+  window.speechSynthesis.speak(utter);
+}
+
+function speakCurrent() {
+  if (currentItem) speakKana(currentItem[0]);
+}
+
+/* ── QWERTY KEYBOARD ── */
+let qwertyText = '';
+let qwertyCursor = 0;  // cursor position (index in string)
+
+function qwertyFocus() {
+  // nothing needed — keyboard is always visible when shown
+}
+
+function renderQwertyDisplay() {
+  const display = document.getElementById('qwertyDisplay');
+  if (!display) return;
+  // Make spaces visible as ·
+  const vis = s => s.replace(/ /g, '<span style="opacity:.4;font-size:10px;vertical-align:middle;">·</span>');
+  if (qwertyText === '') {
+    display.innerHTML = `<span class="placeholder">${t('qwertyPlaceholder')}</span><span class="cursor"></span>`;
+    return;
+  }
+  const before = qwertyText.slice(0, qwertyCursor);
+  const after  = qwertyText.slice(qwertyCursor);
+  display.innerHTML =
+    (before ? `<span>${vis(before)}</span>` : '') +
+    '<span class="cursor"></span>' +
+    (after  ? `<span>${vis(after)}</span>`  : '');
+}
+
+function qkey(char) {
+  if (answered) return;
+  qwertyText = qwertyText.slice(0, qwertyCursor) + char + qwertyText.slice(qwertyCursor);
+  qwertyCursor++;
+  renderQwertyDisplay();
+}
+
+function qkeyDel() {
+  if (answered) return;
+  if (qwertyCursor === 0) return;
+  qwertyText = qwertyText.slice(0, qwertyCursor - 1) + qwertyText.slice(qwertyCursor);
+  qwertyCursor--;
+  renderQwertyDisplay();
+}
+
+function qkeyClear() {
+  if (answered) return;
+  qwertyText = '';
+  qwertyCursor = 0;
+  renderQwertyDisplay();
+}
+
+function qkeyMove(dir) {
+  qwertyCursor = Math.max(0, Math.min(qwertyText.length, qwertyCursor + dir));
+  renderQwertyDisplay();
+}
+
+function qkeySubmit() {
+  if (answered) return;
+  if (!qwertyText.trim()) return;
+  // Reuse submitFillin logic but with qwertyText
+  const normalize = s => s.trim().toLowerCase()
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/　/g, ' ').trim();
+  const raw = normalize(qwertyText);
+  const isCorrect = currentDirection === 'kana2romaji'
+    ? raw === normalize(currentAnswer)
+    : raw === currentAnswer.trim() || raw === normalize(currentItem[1]);
+  // Show answer in display
+  if (!isCorrect) {
+    qwertyText = currentAnswer;
+    qwertyCursor = currentAnswer.length;
+    renderQwertyDisplay();
+    document.getElementById('qwertyDisplay').style.borderColor = 'var(--wrong)';
+  } else {
+    document.getElementById('qwertyDisplay').style.borderColor = 'var(--correct)';
+  }
+  // Disable all keys
+  document.querySelectorAll('.qkey').forEach(b => b.disabled = true);
+  handleAnswerCore(isCorrect, raw);
+}
+
+function showQwerty(show) {
+  const wrap = document.getElementById('qwertyWrap');
+  if (!wrap) return;
+  if (show) {
+    wrap.classList.add('show');
+    document.getElementById('practicePage').classList.add('qwerty-active');
+    qwertyText = '';
+    qwertyCursor = 0;
+    renderQwertyDisplay();
+    document.getElementById('qwertyDisplay').style.borderColor = '';
+    document.querySelectorAll('.qkey').forEach(b => b.disabled = false);
+  } else {
+    wrap.classList.remove('show');
+    document.getElementById('practicePage').classList.remove('qwerty-active');
+  }
+}
+
+/* ── FLICK KEYBOARD ── */
+const FLICK_ROWS_HIRA = {
+  'a':  ['あ','い','う','え','お'],
+  'ka': ['か','き','く','け','こ'],
+  'sa': ['さ','し','す','せ','そ'],
+  'ta': ['た','ち','つ','て','と'],
+  'na': ['な','に','ぬ','ね','の'],
+  'ha': ['は','ひ','ふ','へ','ほ'],
+  'ma': ['ま','み','む','め','も'],
+  'ya': ['や','ゆ','よ',null,null],
+  'ra': ['ら','り','る','れ','ろ'],
+  'wa': ['わ','を','ん','ー',null],
+};
+const FLICK_ROWS_KATA = {
+  'a':  ['ア','イ','ウ','エ','オ'],
+  'ka': ['カ','キ','ク','ケ','コ'],
+  'sa': ['サ','シ','ス','セ','ソ'],
+  'ta': ['タ','チ','ツ','テ','ト'],
+  'na': ['ナ','ニ','ヌ','ネ','ノ'],
+  'ha': ['ハ','ヒ','フ','ヘ','ホ'],
+  'ma': ['マ','ミ','ム','メ','モ'],
+  'ya': ['ヤ','ユ','ヨ',null,null],
+  'ra': ['ラ','リ','ル','レ','ロ'],
+  'wa': ['ワ','ヲ','ン','ー',null],
+};
+
+let flickKanaMode = 'hira'; // 'hira' or 'kata'
+FLICK_ROWS = FLICK_ROWS_HIRA;
+
+function flickToggleKana(mode) {
+  flickKanaMode = mode || (flickKanaMode === 'hira' ? 'kata' : 'hira');
+  FLICK_ROWS = flickKanaMode === 'hira' ? FLICK_ROWS_HIRA : FLICK_ROWS_KATA;
+  // Update button labels
+  const toggleBtn = document.getElementById('fk-kana-toggle');
+  const toggleTop = document.getElementById('fk-toggle-top');
+  const isKata = flickKanaMode === 'kata';
+  if (toggleTop) toggleTop.textContent = isKata ? 'ア' : 'あ';
+  if (toggleBtn) toggleBtn.classList.toggle('kata-mode', isKata);
+  // Update all key labels
+  const rowMap = {
+    'fk-a':'a','fk-ka':'ka','fk-sa':'sa','fk-ta':'ta','fk-na':'na',
+    'fk-ha':'ha','fk-ma':'ma','fk-ya':'ya','fk-ra':'ra','fk-wa':'wa'
+  };
+  Object.entries(rowMap).forEach(([id, row]) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.textContent = FLICK_ROWS[row][0];
+  });
+}
+
+
+
+// Small kana map
+const SMALL_MAP = {
+  // 平假名
+  'あ':'ぁ','い':'ぃ','う':'ぅ','え':'ぇ','お':'ぉ',
+  'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お',
+  'や':'ゃ','ゆ':'ゅ','よ':'ょ','ゃ':'や','ゅ':'ゆ','ょ':'よ',
+  'つ':'っ','っ':'つ','わ':'ゎ','ゎ':'わ',
+  // 片假名
+  'ア':'ァ','イ':'ィ','ウ':'ゥ','エ':'ェ','オ':'ォ',
+  'ァ':'ア','ィ':'イ','ゥ':'ウ','ェ':'エ','ォ':'オ',
+  'ヤ':'ャ','ユ':'ュ','ヨ':'ョ','ャ':'ヤ','ュ':'ユ','ョ':'ヨ',
+  'ツ':'ッ','ッ':'ツ','ワ':'ヮ','ヮ':'ワ',
+};
+// Dakuten map
+const DAKU_MAP = {
+  // 平假名
+  'か':'が','き':'ぎ','く':'ぐ','け':'げ','こ':'ご',
+  'さ':'ざ','し':'じ','す':'ず','せ':'ぜ','そ':'ぞ',
+  'た':'だ','ち':'ぢ','つ':'づ','て':'で','と':'ど',
+  'は':'ば','ひ':'び','ふ':'ぶ','へ':'べ','ほ':'ぼ',
+  'が':'か','ぎ':'き','ぐ':'く','げ':'け','ご':'こ',
+  'ざ':'さ','じ':'し','ず':'す','ぜ':'せ','ぞ':'そ',
+  'だ':'た','ぢ':'ち','づ':'つ','で':'て','ど':'と',
+  'ば':'ぱ','び':'ぴ','ぶ':'ぷ','べ':'ぺ','ぼ':'ぽ',
+  'ぱ':'は','ぴ':'ひ','ぷ':'ふ','ぺ':'へ','ぽ':'ほ',
+  // 片假名
+  'カ':'ガ','キ':'ギ','ク':'グ','ケ':'ゲ','コ':'ゴ',
+  'サ':'ザ','シ':'ジ','ス':'ズ','セ':'ゼ','ソ':'ゾ',
+  'タ':'ダ','チ':'ヂ','ツ':'ヅ','テ':'デ','ト':'ド',
+  'ハ':'バ','ヒ':'ビ','フ':'ブ','ヘ':'ベ','ホ':'ボ',
+  'ガ':'カ','ギ':'キ','グ':'ク','ゲ':'ケ','ゴ':'コ',
+  'ザ':'サ','ジ':'シ','ズ':'ス','ゼ':'セ','ゾ':'ソ',
+  'ダ':'タ','ヂ':'チ','ヅ':'ツ','デ':'テ','ド':'ト',
+  'バ':'パ','ビ':'ピ','ブ':'プ','ベ':'ペ','ボ':'ポ',
+  'パ':'ハ','ピ':'ヒ','プ':'フ','ペ':'ヘ','ポ':'ホ',
+};
+
+let flickText = '';
+let flickCursor = 0;
+let flickActive = false;
+let flickLastRow = null;   // last tapped row key
+let flickCycleIdx = 0;     // current cycle index in that row
+let flickCycleTimer = null; // timer to reset cycle after pause // is flick keyboard visible
+let flickTouchStart = null;
+let flickCurrentRow = null;
+let flickSelectedDir = 0; // 0=center,1=left,2=up,3=right,4=down
+const FLICK_THRESHOLD = 20; // px
+
+function renderFlickDisplay() {
+  const el = document.getElementById('flickDisplay');
+  if (!el) return;
+  if (flickText === '') {
+    el.innerHTML = `<span class="fplaceholder">${t('flickPlaceholder')}</span>`;
+    return;
+  }
+  const before = flickText.slice(0, flickCursor);
+  const after  = flickText.slice(flickCursor);
+  el.innerHTML =
+    (before ? `<span>${before}</span>` : '') +
+    '<span class="fcursor"></span>' +
+    (after  ? `<span>${after}</span>`  : '');
+}
+
+function flickMove(dir) {
+  flickCursor = Math.max(0, Math.min(flickText.length, flickCursor + dir));
+  renderFlickDisplay();
+}
+
+function flickInsert(char) {
+  if (!char || answered) return;
+  flickText = flickText.slice(0, flickCursor) + char + flickText.slice(flickCursor);
+  flickCursor++;
+  renderFlickDisplay();
+}
+
+function flickDel() {
+  if (answered || flickCursor === 0) return;
+  // Reset cycle state
+  flickLastRow = null; flickCycleIdx = 0; clearTimeout(flickCycleTimer);
+  flickText = flickText.slice(0, flickCursor - 1) + flickText.slice(flickCursor);
+  flickCursor--;
+  renderFlickDisplay();
+}
+
+function flickMod() {
+  if (answered || flickCursor === 0) return;
+  const prev = flickText[flickCursor - 1];
+  // Build cycle: base → small → daku → handaku → base
+  // First, find the base character
+  function getBase(c) {
+    // If it's a small kana, get the big version
+    if (SMALL_MAP[c]) return SMALL_MAP[c]; // small↔big are mutual in SMALL_MAP
+    // If it's a daku/handaku, get base
+    if (DAKU_MAP[c]) return DAKU_MAP[c];
+    return c;
+  }
+  const base = getBase(prev);
+  const small = SMALL_MAP[base];        // base → small (if exists)
+  const daku  = DAKU_MAP[base];         // base → daku (if exists)
+  const handaku = daku ? DAKU_MAP[daku] : null; // daku → handaku (if exists)
+
+  // Cycle: current → next in sequence
+  let next;
+  if (prev === base) {
+    // base → small (if exists) else daku (if exists) else nothing
+    next = small || daku || null;
+  } else if (small && prev === small) {
+    // small → daku (if exists) else base
+    next = daku || base;
+  } else if (daku && prev === daku) {
+    // daku → handaku (if exists) else base
+    next = handaku || base;
+  } else if (handaku && prev === handaku) {
+    // handaku → base
+    next = base;
+  } else {
+    next = null;
+  }
+
+  if (!next || next === prev) return;
+  flickText = flickText.slice(0, flickCursor - 1) + next + flickText.slice(flickCursor);
+  renderFlickDisplay();
+}
+
+function flickSubmit() {
+  if (answered || !flickText.trim()) return;
+  const raw = flickText.trim();
+  // Accept exact kana match or romaji
+  const normalize = s => s.trim().toLowerCase();
+  const isCorrect = raw === currentAnswer.trim() ||
+                    normalize(raw) === normalize(currentItem ? currentItem[1] : '');
+  // Visual feedback
+  const disp = document.getElementById('flickDisplay');
+  if (disp) disp.style.borderColor = isCorrect ? 'var(--correct)' : 'var(--wrong)';
+  if (!isCorrect) {
+    flickText = currentAnswer;
+    flickCursor = currentAnswer.length;
+    renderFlickDisplay();
+  }
+  document.querySelectorAll('.fkey').forEach(b => b.disabled = true);
+  handleAnswerCore(isCorrect, raw);
+}
+
+function showFlickPopup(row, dirIndex, x, y) {
+  const popup = document.getElementById('flickPopup');
+  const inner = document.getElementById('flickPopupInner');
+  if (!popup || !inner) return;
+  const chars = FLICK_ROWS[row]; // [center, left, up, right, down]
+  const dirs  = ['fp-center','fp-left','fp-top','fp-right','fp-bottom'];
+  // positions: top=up=idx2, left=idx1, center=idx0, right=idx3, bottom=down=idx4
+  const cells = [
+    { cls:'fp-top',    idx:2 },
+    { cls:'fp-left',   idx:1 },
+    { cls:'fp-center', idx:0 },
+    { cls:'fp-right',  idx:3 },
+    { cls:'fp-bottom', idx:4 },
+  ];
+  inner.innerHTML = cells.map(({cls, idx}) => {
+    const c = chars[idx] || '';
+    const isActive = idx === dirIndex;
+    return `<div class="fp-cell ${cls} ${isActive?'fp-active':''} ${!c?'fp-empty':''}">${c}</div>`;
+  }).join('');
+
+  // Position popup above the key
+  popup.style.left = (x - 78) + 'px';
+  popup.style.top  = (y - 175) + 'px';
+  popup.classList.add('show');
+}
+
+function hideFlickPopup() {
+  const popup = document.getElementById('flickPopup');
+  if (popup) popup.classList.remove('show');
+}
+
+// Attach touch events to all fkey buttons
+function initFlickKeys() {
+  document.querySelectorAll('.fkey[data-row]').forEach(btn => {
+    const row = btn.dataset.row;
+
+    btn.addEventListener('touchstart', e => {
+      if (answered) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      flickTouchStart = { x: t.clientX, y: t.clientY };
+      flickCurrentRow = row;
+      flickSelectedDir = 0;
+      showFlickPopup(row, 0, t.clientX, t.clientY);
+    }, { passive: false });
+
+    btn.addEventListener('touchmove', e => {
+      if (!flickTouchStart || !flickCurrentRow) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      const dx = t.clientX - flickTouchStart.x;
+      const dy = t.clientY - flickTouchStart.y;
+      const adx = Math.abs(dx), ady = Math.abs(dy);
+      let dir = 0; // center
+      if (Math.max(adx, ady) > FLICK_THRESHOLD) {
+        if (adx > ady) dir = dx < 0 ? 1 : 3; // left:1, right:3
+        else           dir = dy < 0 ? 2 : 4; // up:2, down:4
+      }
+      flickSelectedDir = dir;
+      showFlickPopup(flickCurrentRow, dir, flickTouchStart.x, flickTouchStart.y);
+    }, { passive: false });
+
+    btn.addEventListener('touchend', e => {
+      e.preventDefault();
+      if (!flickCurrentRow) return;
+      const row = flickCurrentRow;
+      const dir = flickSelectedDir;
+      const chars = FLICK_ROWS[row];
+      const char = chars[dir];
+      hideFlickPopup();
+      flickCurrentRow = null;
+      flickTouchStart = null;
+      if (!char) return;
+
+      if (dir !== 0) {
+        // Flick gesture — insert directly, reset cycle
+        flickLastRow = null;
+        flickCycleIdx = 0;
+        clearTimeout(flickCycleTimer);
+        flickInsert(char);
+      } else {
+        // Tap (center) — cycle through the row
+        clearTimeout(flickCycleTimer);
+        const rowChars = chars.filter(Boolean); // remove nulls
+        if (flickLastRow === row) {
+          // Same key tapped again — replace last char with next in cycle
+          flickCycleIdx = (flickCycleIdx + 1) % rowChars.length;
+          // Remove previous char
+          flickText = flickText.slice(0, flickCursor - 1) + flickText.slice(flickCursor);
+          flickCursor--;
+        } else {
+          // New key — start cycle
+          flickLastRow = row;
+          flickCycleIdx = 0;
+        }
+        const cycleChar = rowChars[flickCycleIdx];
+        flickInsert(cycleChar);
+        // Reset cycle after 1.2s of no tap
+        flickCycleTimer = setTimeout(() => {
+          flickLastRow = null;
+          flickCycleIdx = 0;
+        }, 1200);
+      }
+    }, { passive: false });
+
+    btn.addEventListener('touchcancel', () => {
+      hideFlickPopup();
+      flickCurrentRow = null;
+      flickTouchStart = null;
+    });
+
+    // Desktop mouse: mousedown → show popup, mousemove → update direction, mouseup → insert
+    let mouseFlickStart = null;
+    let mouseFlickDir = 0;
+
+    btn.addEventListener('mousedown', e => {
+      if (answered || e.button !== 0) return;
+      mouseFlickStart = { x: e.clientX, y: e.clientY };
+      mouseFlickDir = 0;
+      showFlickPopup(btn.dataset.row, 0, e.clientX, e.clientY);
+
+      const onMove = e => {
+        if (!mouseFlickStart) return;
+        const dx = e.clientX - mouseFlickStart.x;
+        const dy = e.clientY - mouseFlickStart.y;
+        const adx = Math.abs(dx), ady = Math.abs(dy);
+        let dir = 0;
+        if (Math.max(adx, ady) > FLICK_THRESHOLD) {
+          if (adx > ady) dir = dx < 0 ? 1 : 3;
+          else           dir = dy < 0 ? 2 : 4;
+        }
+        mouseFlickDir = dir;
+        showFlickPopup(btn.dataset.row, dir, mouseFlickStart.x, mouseFlickStart.y);
+      };
+
+      const onUp = e => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        if (!mouseFlickStart) return;
+        const row = btn.dataset.row;
+        const dir = mouseFlickDir;
+        const chars = FLICK_ROWS[row];
+        const char = chars ? chars[dir] : null;
+        hideFlickPopup();
+        mouseFlickStart = null;
+        mouseFlickDir = 0;
+        if (!char) return;
+
+        if (dir !== 0) {
+          // Flick — insert directly
+          flickLastRow = null; flickCycleIdx = 0;
+          clearTimeout(flickCycleTimer);
+          flickInsert(char);
+        } else {
+          // Tap center — cycle
+          clearTimeout(flickCycleTimer);
+          const rowChars = chars.filter(Boolean);
+          if (flickLastRow === row) {
+            flickCycleIdx = (flickCycleIdx + 1) % rowChars.length;
+            flickText = flickText.slice(0, flickCursor - 1) + flickText.slice(flickCursor);
+            flickCursor--;
+          } else {
+            flickLastRow = row;
+            flickCycleIdx = 0;
+          }
+          flickInsert(rowChars[flickCycleIdx]);
+          flickCycleTimer = setTimeout(() => { flickLastRow = null; flickCycleIdx = 0; }, 1200);
+        }
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  });
+
+  // Del button long press to clear
+  // Del button is in bottom row with onclick handler
+
+  // Submit button style
+  const subBtn = document.getElementById('fk-submit');
+  if (subBtn) {
+    subBtn.className = 'fkey fkey-action';
+    subBtn.style.borderRadius = '10px';
+  }
+}
+
+function showFlick(show) {
+  const wrap = document.getElementById('flickWrap');
+  if (!wrap) return;
+  if (show) {
+    wrap.classList.add('show');
+    flickText = ''; flickCursor = 0;
+    renderFlickDisplay();
+    const disp = document.getElementById('flickDisplay');
+    if (disp) disp.style.borderColor = '';
+    document.querySelectorAll('.fkey').forEach(b => b.disabled = false);
+    document.getElementById('practicePage').classList.add('flick-active');
+    flickActive = true;
+    // Auto-switch to kata if current item is katakana
+    flickToggleKana(isKataGroup(currentItem) ? 'kata' : 'hira');
+  } else {
+    wrap.classList.remove('show');
+    document.getElementById('practicePage').classList.remove('flick-active');
+    flickActive = false;
+    hideFlickPopup();
+  }
+}
+
+function switchToQwerty() {
+  showFlick(false);
+  showQwerty(true);
+}
+
+function switchToFlick() {
+  showQwerty(false);
+  showFlick(true);
+}
+
+
+/* ── I18N ── */
+let currentLang = 'zh';
+
+const I18N = {
+  zh: {
+    // Meta
+    logoText: 'Japanese · 日语练习',
+    titleText: '五十音图强化训练',
+    pageTitle: '五十音图强化训练',
+    fillinPlaceholder: '输入罗马字，如 ka',
+    spaceKey: '空格',
+    confirmKey: '确认',
+    langZh: '中文',
+    navPractice: '✏️ 练习',
+    chartKata: '片假名 カタカナ',
+    chartBoth: '对照',
+    qsHiraDaku: '平假名浊音',
+    qsKata: '片假名',
+    qsKataDaku: '片假名浊音',
+    pmFillin: '✏️ 填空题',
+    dirR2K: '罗马字 → 假名',
+    dirMix: '混合',
+    statCorrect: '正确',
+    statWrong: '错误',
+    exitReview: '退出复习',
+    reviewMistakes: '复习错题 →',
+    nbReviewAll: '全部复习',
+    nbClear: '清空',
+    confirmCancel: '取消',
+    // Nav
+    navChart: '📊 五十音图', navPractice: '✏️ 练习', navNotebook: '📕 错题本',
+    // Chart
+    chartHira: '平假名 ひらがな', chartKata: '片假名 カタカナ', chartBoth: '对照',
+    dakutenLabel: '浊音・半浊音',
+    chartLegendNormal: '普通', chartLegendMistake: '错题本中（红色）',
+    chartNote: '横列为母音（a i u e o），纵列为子音行。标红的字是你的错题，重点记忆！\n※ じ・ぢ 均读作 ji，ず・づ 均读作 zu（同音异字）。',
+    // Practice
+    sectionRange: '练习范围',
+    qsHira: '平假名', qsHiraDaku: '平假名浊音', qsKata: '片假名', qsKataDaku: '片假名浊音',
+    sectionType: '题型',
+    pmChoice: '选择题', pmFillin: '✏️ 填空题',
+    sectionDir: '出题方向',
+    dirK2R: '假名 → 罗马字', dirR2K: '罗马字 → 假名', dirMix: '混合',
+    statScore: '得分', statCorrect: '正确', statWrong: '错误',
+    masteryLabel: '🌸 已掌握',
+    btnNoMastered: '不含已掌握', btnIncMastered: '✓ 包含已掌握',
+    btnReset: '重置熟练度',
+    reviewBanner: '📕 错题复习模式', exitReview: '退出复习',
+    masteredNoticeTitle: '全部掌握了！',
+    masteredNoticeSub: '这组假名已经完全掌握。\n可以选择更多行组继续练习，或开启「包含已掌握」来复习。',
+    // Question
+    qTypeKana: (t) => `这个<span style="color:${t.color};font-weight:900;">${t.name}</span>的读法是？`,
+    qTypeRomaji: (t) => `罗马字对应的假名是？ <span style="color:${t.color};font-weight:900;">${t.name}</span>`,
+    homoHint: (arr, r) => `（${arr.join('・')}都读作 ${r}，本题只选其一）`,
+    // Answer
+    correct: '✓ 正确！', correctFast: '✓ 正确！⚡',
+    mastered: '✓ 正确！🌸 已掌握！',
+    masteredRemoved: '✓ 正确！🌸 已掌握，已从错题本移除',
+    wrongAnswer: (a) => `✗ 正确答案：${a}`,
+    // Badge
+    badgeNew: '新字', badgeNeedWork: '需要加强', badgePracticing: '练习中',
+    badgeFamiliar: '逐渐熟悉', badgeAlmost: '快掌握了',
+    badgeMastered: '🌸 已掌握', badgeReview: '🌸 复习',
+    // Score screen
+    nextBtn: '下一题 →',
+    scoreTitle: '练习完成！', reviewScoreTitle: '错题复习完成！',
+    restart: '再来一次 ↺', reviewMistakes: '复习错题 →',
+    scorePct: (p, msg, m, t, mc) => `正确率 ${p}%　${msg}
+🌸 已掌握 ${m}/${t} 个假名` + (mc > 0 ? `　·　错题本 ${mc} 个` : ''),
+    scoreMsg100: '🌸 完美！你已掌握了这些假名！',
+    scoreMsg80: '⭐ 非常好！继续保持！',
+    scoreMsg60: '👍 不错！还有进步空间！',
+    scoreMsg0: '📖 加油！多练几次就会记住的！',
+    // Notebook
+    nbTitle: '📕 错题本', nbReviewAll: '全部复习', nbClear: '清空',
+    nbEmpty: '错题本是空的！',
+    nbEmptySub: '答错的假名会自动记录在这里\n五十音图中也会标红显示',
+    nbInfo: (n) => `共 ${n} 个错题 · 点 × 移除`,
+    // Confuse panel
+    confuseTitle: '⚠️ 容易混淆',
+    confuseFallback: (a, ra, b, rb) => `「${a}」读作 ${ra}，「${b}」读作 ${rb}，注意区分！`,
+    // Confirm dialog
+    confirmResetTitle: '重置熟练度', confirmResetMsg: '确定要重置所有熟练度数据吗？错题本不会被清空。',
+    confirmClearTitle: '清空错题本', confirmClearMsg: '确定要清空所有错题吗？此操作不可恢复。',
+    confirmOk: '确定', confirmCancel: '取消',
+    confirmReviewEmpty: '错题本是空的', confirmReviewEmptyMsg: '先去练习几题，答错的字会自动记录进来。',
+    // Keyboard
+    flickPlaceholder: '输入假名…', qwertyPlaceholder: '输入罗马字，如 ka',
+    flickConfirm: '确认', qwertyConfirm: '确认',
+    kanaTypePH: '平假名', kanaTypePHName: '平假名',
+    kanaTypeKT: '片假名', kanaTypeKTName: '片假名',
+  },
+  en: {
+    // Meta
+    logoText: 'Japanese · 日本語 Practice',
+    titleText: 'Kana Mastery Trainer',
+    pageTitle: 'Kana Mastery Trainer',
+    fillinPlaceholder: 'Type romaji, e.g. ka',
+    spaceKey: 'Space',
+    confirmKey: 'OK',
+    navPractice: '✏️ Practice',
+    chartKata: 'Katakana カタカナ',
+    chartBoth: 'Both',
+    qsHiraDaku: 'Hiragana voiced',
+    qsKata: 'Katakana',
+    qsKataDaku: 'Katakana voiced',
+    pmFillin: '✏️ Fill in',
+    dirR2K: 'Romaji → Kana',
+    dirMix: 'Mixed',
+    statCorrect: 'Correct',
+    statWrong: 'Wrong',
+    exitReview: 'Exit',
+    reviewMistakes: 'Review mistakes →',
+    nbReviewAll: 'Review all',
+    nbClear: 'Clear',
+    confirmCancel: 'Cancel',
+    // Nav
+    navChart: '📊 Chart', navPractice: '✏️ Practice', navNotebook: '📕 Mistakes',
+    // Chart
+    chartHira: 'Hiragana ひらがな', chartKata: 'Katakana カタカナ', chartBoth: 'Both',
+    dakutenLabel: 'Dakuten & Handakuten',
+    chartLegendNormal: 'Normal', chartLegendMistake: 'In mistake book (red)',
+    chartNote: 'Rows = consonants, columns = vowels (a i u e o). Red = your mistakes.\n※ じ・ぢ both read "ji", ず・づ both read "zu" (homophones).',
+    // Practice
+    sectionRange: 'Practice range',
+    qsHira: 'Hiragana', qsHiraDaku: 'Hiragana voiced', qsKata: 'Katakana', qsKataDaku: 'Katakana voiced',
+    sectionType: 'Question type',
+    pmChoice: 'Multiple choice', pmFillin: '✏️ Fill in',
+    sectionDir: 'Direction',
+    dirK2R: 'Kana → Romaji', dirR2K: 'Romaji → Kana', dirMix: 'Mixed',
+    statScore: 'Score', statCorrect: 'Correct', statWrong: 'Wrong',
+    masteryLabel: '🌸 Mastered',
+    btnNoMastered: 'Exclude mastered', btnIncMastered: '✓ Include mastered',
+    btnReset: 'Reset progress',
+    reviewBanner: '📕 Mistake review mode', exitReview: 'Exit',
+    masteredNoticeTitle: 'All mastered!',
+    masteredNoticeSub: `You've mastered all kana in this group.\nAdd more groups or enable 'Include mastered' to keep practicing.`,
+    // Question
+    qTypeKana: (t) => `What does this <span style="color:${t.color};font-weight:900;">${t.name}</span> read?`,
+    qTypeRomaji: (t) => `Which <span style="color:${t.color};font-weight:900;">${t.name}</span> matches this romaji?`,
+    homoHint: (arr, r) => `(${arr.join('・')} all read "${r}" — pick one)`,
+    // Answer
+    correct: '✓ Correct!', correctFast: '✓ Correct! ⚡',
+    mastered: '✓ Correct! 🌸 Mastered!',
+    masteredRemoved: '✓ Correct! 🌸 Mastered — removed from mistakes',
+    wrongAnswer: (a) => `✗ Answer: ${a}`,
+    // Badge
+    badgeNew: 'New', badgeNeedWork: 'Needs work', badgePracticing: 'Practicing',
+    badgeFamiliar: 'Getting there', badgeAlmost: 'Almost!',
+    badgeMastered: '🌸 Mastered', badgeReview: '🌸 Review',
+    // Score screen
+    nextBtn: 'Next →',
+    scoreTitle: 'Practice complete!', reviewScoreTitle: 'Mistake review complete!',
+    restart: 'Try again ↺', reviewMistakes: 'Review mistakes →',
+    scorePct: (p, msg, m, t, mc) => `${p}% correct　${msg}
+🌸 Mastered ${m}/${t} kana` + (mc > 0 ? `　·　${mc} in mistake book` : ''),
+    scoreMsg100: `🌸 Perfect! You've mastered all these kana!`,
+    scoreMsg80: `⭐ Great job! Keep it up!`,
+    scoreMsg60: `👍 Good! Room to improve!`,
+    scoreMsg0: `📖 Keep practicing — you'll get there!`,
+    // Notebook
+    nbTitle: '📕 Mistake Book', nbReviewAll: 'Review all', nbClear: 'Clear',
+    nbEmpty: 'No mistakes yet!',
+    nbEmptySub: `Kana you get wrong will appear here\nand be highlighted red in the chart.`,
+    nbInfo: (n) => `${n} mistake${n>1?'s':''} · tap × to remove`,
+    // Confuse panel
+    confuseTitle: '⚠️ Easy to confuse',
+    confuseFallback: (a, ra, b, rb) => `"${a}" reads ${ra}, "${b}" reads ${rb} — don't mix them up!`,
+    // Confirm dialog
+    confirmResetTitle: 'Reset progress', confirmResetMsg: 'Reset all SRS data? Your mistake book will not be cleared.',
+    confirmClearTitle: 'Clear mistake book', confirmClearMsg: 'Clear all mistakes? This cannot be undone.',
+    confirmOk: 'OK', confirmCancel: 'Cancel',
+    confirmReviewEmpty: 'No mistakes yet', confirmReviewEmptyMsg: `Practice a few rounds first — wrong answers will be saved here.`,
+    // Keyboard
+    flickPlaceholder: 'Enter kana…', qwertyPlaceholder: 'Type romaji, e.g. ka',
+    flickConfirm: 'OK', qwertyConfirm: 'OK',
+    kanaTypePH: 'Hiragana', kanaTypePHName: 'Hiragana',
+    kanaTypeKT: 'Katakana', kanaTypeKTName: 'Katakana',
+  }
+};
+
+function t(key, ...args) {
+  const val = I18N[currentLang][key];
+  if (typeof val === 'function') return val(...args);
+  return val ?? I18N['zh'][key] ?? key;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('langZh').classList.toggle('active', lang === 'zh');
+  document.getElementById('langEn').classList.toggle('active', lang === 'en');
+  applyLang();
+}
+
+function applyLang() {
+  // 1. All static elements with data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    const val = t(key);
+    if (val !== undefined) el.textContent = val;
+  });
+
+  // 2. navChart/navNotebook have badge inside — rebuild carefully
+  // Title and logo (can't use data-i18n - title uses CSS gradient clip)
+  document.querySelector('.title').textContent = t('titleText');
+  document.getElementById('logoText').textContent = t('logoText');
+  document.title = t('pageTitle');
+  // navChart has no badge - simple text
+  const navChart = document.getElementById('navChart');
+  if (navChart) navChart.textContent = t('navChart');
+  // navNotebook has badge inside - preserve it
+  const navNb = document.getElementById('navNotebook');
+  const badge = document.getElementById('tabBadge');
+  if (navNb && badge) { navNb.textContent = t('navNotebook'); navNb.appendChild(badge); }
+
+  // 3. Placeholders
+  const fi = document.getElementById('fillinInput');
+  if (fi) fi.placeholder = t('fillinPlaceholder');
+  // Re-render keyboard displays to update placeholders
+  renderQwertyDisplay();
+  renderFlickDisplay();
+
+  // 4. State-dependent buttons
+  document.getElementById('includeMasteredBtn').textContent =
+    includeMastered ? t('btnIncMastered') : t('btnNoMastered');
+  document.getElementById('scoreTitle').textContent =
+    isReviewMode ? t('reviewScoreTitle') : t('scoreTitle');
+
+  // 5. Group buttons
+  buildGroupBtns();
+  syncQuickSelectBtns();
+
+  // 6. Re-render badge
+  if (currentItem) {
+    const entry = getSRSEntry(currentItem[0], currentItem[1]);
+    const hasSeen = !!loadSRS()[currentItem[0]];
+    const isDueReview = entry.mastered && entry.nextReview && Date.now() >= entry.nextReview;
+    let badgeClass, badgeLabel;
+    if(entry.mastered && isDueReview) { badgeClass='mastered'; badgeLabel=t('badgeReview'); }
+    else if(entry.mastered)           { badgeClass='mastered'; badgeLabel=t('badgeMastered'); }
+    else if(!hasSeen)                 { badgeClass='zero';     badgeLabel=t('badgeNew'); }
+    else if(entry.score<0)            { badgeClass='negative'; badgeLabel=t('badgeNeedWork'); }
+    else if(entry.score<=3)           { badgeClass='zero';     badgeLabel=t('badgePracticing'); }
+    else if(entry.score<=6)           { badgeClass='positive'; badgeLabel=t('badgeFamiliar'); }
+    else                              { badgeClass='positive'; badgeLabel=t('badgeAlmost'); }
+    const badgeEl = document.getElementById('scoreBadge');
+    if (badgeEl && badgeEl.innerHTML) {
+      badgeEl.innerHTML = `<button class="speak-badge ${badgeClass}" onclick="speakCurrent()"><span class="sb-icon">🔊</span><span class="sb-label">${badgeLabel}</span></button>`;
+    }
+  }
+
+  // 7. Re-render question type
+  if (currentItem) {
+    const isKata = isKataGroup(currentItem);
+    const name = isKata ? t('kanaTypeKT') : t('kanaTypePH');
+    const color = isKata ? 'var(--accent2)' : 'var(--accent)';
+    const qtEl = document.getElementById('questionType');
+    if (qtEl) qtEl.innerHTML = currentDirection === 'kana2romaji'
+      ? t('qTypeKana', {name, color}) : t('qTypeRomaji', {name, color});
+  }
+
+  // 8. Re-render dynamic content
+  renderChart();
+  // Legend and chart note (contain child elements, can't use data-i18n textContent)
+  const ln = document.getElementById('legendNormal');
+  if (ln) { ln.innerHTML = `<div class="legend-dot normal"></div> ${t('chartLegendNormal')}`; }
+  const lm = document.getElementById('legendMistake');
+  if (lm) { lm.innerHTML = `<div class="legend-dot mistake"></div> ${t('chartLegendMistake')}`; }
+  const cn = document.getElementById('chartNote');
+  if (cn) cn.textContent = t('chartNote');
+  const mns = document.getElementById('masteredNoticeSub');
+  if (mns) mns.innerHTML = t('masteredNoticeSub').replace('\n', '<br>');
+  if (document.getElementById('notebookPage').classList.contains('show')) renderNotebook();
+}
+
+/* ── INIT ── */
+// Preload voice list (iOS requires a user gesture first, but we can cache)
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+buildGroupBtns();buildQueue();
+syncQuickSelectBtns();
+applyLang();
+initFlickKeys();
+if(questionQueue.length>0)nextQuestion();
+updateBadge();updateMasteryBar();renderChart();
+</script>
+</body>
+</html>
