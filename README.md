@@ -49,7 +49,7 @@ This tool is best for:
 
 ## 📸 Screenshots
 
-<img width="420" height="775" alt="image" src="https://github.com/user-attachments/assets/8ec2f302-0ae6-4b24-9f13-99ccf5dad52d" />
+<img width="420" height="790" alt="image" src="https://github.com/user-attachments/assets/8ec2f302-0ae6-4b24-9f13-99ccf5dad52d" />
 <img width="420" height="770" alt="image" src="https://github.com/user-attachments/assets/6ac1aa36-f51b-46ef-ad4e-05561a581fe8" />
 <img width="420" height="938" alt="image" src="https://github.com/user-attachments/assets/1b77f463-364b-4670-a010-8206888d4ef6" />
 <img width="433" height="931" alt="image" src="https://github.com/user-attachments/assets/a3e11a5d-9ad5-468e-a451-1cc781e0cd5e" />
