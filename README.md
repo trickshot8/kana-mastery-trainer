@@ -47,6 +47,20 @@ This tool is designed specifically to push you through that wall — from recogn
 
 ---
 
+## 📸 Screenshots
+
+### Home
+![Home](assets/screenshots/home.png)
+
+### Practice
+![Practice](assets/screenshots/practice_multiple_choice.png)
+![Practice](assets/screenshots/practice_fill_in.png)
+
+### Mistakes
+![Mistakes](assets/screenshots/mistakes.png)
+
+---
+
 ## 🛠️ Tech Stack
 
 - Pure HTML / CSS / JavaScript — single file, no framework, no build step
