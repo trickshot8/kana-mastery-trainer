@@ -49,10 +49,10 @@ This tool is best for:
 
 ## 📸 Screenshots
 
-> <img width="419" height="870" alt="image" src="https://github.com/user-attachments/assets/b814d814-7bc1-460c-a633-463d0177f4ca" />
-<img width="427" height="778" alt="image" src="https://github.com/user-attachments/assets/6ac1aa36-f51b-46ef-ad4e-05561a581fe8" />
-<img width="428" height="938" alt="image" src="https://github.com/user-attachments/assets/1b77f463-364b-4670-a010-8206888d4ef6" />
-<img width="433" height="496" alt="image" src="https://github.com/user-attachments/assets/3f50c444-e27f-4379-ab90-f376b08a36b1" />
+> <img width="420" height="870" alt="image" src="https://github.com/user-attachments/assets/b814d814-7bc1-460c-a633-463d0177f4ca" />
+<img width="420" height="778" alt="image" src="https://github.com/user-attachments/assets/6ac1aa36-f51b-46ef-ad4e-05561a581fe8" />
+<img width="420" height="938" alt="image" src="https://github.com/user-attachments/assets/1b77f463-364b-4670-a010-8206888d4ef6" />
+<img width="420" height="496" alt="image" src="https://github.com/user-attachments/assets/3f50c444-e27f-4379-ab90-f376b08a36b1" />
 
 
 
