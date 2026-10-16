@@ -428,6 +428,24 @@ header{text-align:center;padding:22px 0 2px;}
     background: linear-gradient(135deg, rgba(232,184,109,.2), rgba(201,125,232,.2));
     color: var(--text);
   }
+
+  /* v1.7: progress colors on the chart */
+  .cell-kana.st-new{background:none;-webkit-text-fill-color:#6f6790;color:#6f6790;}
+  .cell-kana.st-prac{background:none;-webkit-text-fill-color:#c4bbe6;color:#c4bbe6;}
+  .cell-kana.st-fam{background:none;-webkit-text-fill-color:#8fd9b3;color:#8fd9b3;}
+  .cell-kana.st-almost{background:none;-webkit-text-fill-color:var(--correct);color:var(--correct);}
+  .cell-kana.st-mast{background:linear-gradient(160deg,#ffe2a8 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .cell-kana.st-weak{background:linear-gradient(160deg,var(--wrong) 0%,#ff9090 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .cell-kana.st-na{background:none;-webkit-text-fill-color:var(--muted);color:var(--muted);opacity:.35;}
+  .legend-dot.st-new{background:#6f6790;}.legend-dot.st-prac{background:#c4bbe6;}.legend-dot.st-fam{background:#8fd9b3;}
+  .legend-dot.st-almost{background:var(--correct);}.legend-dot.st-mast{background:var(--accent);}.legend-dot.st-weak{background:var(--wrong);}
+  .chart-summary{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;font-size:12px;color:var(--muted);text-align:center;line-height:1.6;}
+  .chart-summary b{color:var(--text);font-weight:900;}
+  .chart-summary b.due{color:var(--accent);}
+  .sync-status{font-size:10px;color:var(--muted);margin-top:6px;letter-spacing:.3px;line-height:2;}
+  .sync-status:empty{display:none;}
+  .sync-status button{background:var(--surface);border:1px solid var(--border);border-radius:50px;color:var(--text);font-size:11px;font-weight:700;padding:2px 10px;margin:0 2px;cursor:pointer;font-family:inherit;}
+  .sync-status button.sync-link{background:none;border:none;color:var(--muted);font-weight:400;font-size:10px;padding:0;text-decoration:underline;text-underline-offset:2px;}
 </style>
 </head>
 <body>
@@ -435,11 +453,12 @@ header{text-align:center;padding:22px 0 2px;}
   <header>
     <div class="logo" id="logoText" data-i18n="logoText">Kana Mastery Trainer</div>
     <div class="title">Kana Mastery Trainer</div>
+    <div class="sync-status" id="syncStatus"></div>
     <div class="lang-toggle">
       <button class="lang-btn active" id="langZh" onclick="setLang('zh')" data-i18n="langZh">中文</button>
       <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
     </div>
-    <div style="font-size:10px;color:var(--muted);opacity:.6;margin-top:6px;line-height:1.6;letter-spacing:0.5px;">© 2026 第零乐章. All rights reserved. · v1.5<br>This project is for demonstration and personal use only.</div>
+    <div style="font-size:10px;color:var(--muted);opacity:.6;margin-top:6px;line-height:1.6;letter-spacing:0.5px;">© 2026 第零乐章. All rights reserved. · v1.8<br>This project is for demonstration and personal use only.</div>
   </header>
 
   <div class="nav-tabs">
@@ -450,6 +469,7 @@ header{text-align:center;padding:22px 0 2px;}
 
   <!-- CHART -->
   <div class="chart-page show" id="chartPage">
+    <div class="chart-summary" id="chartSummary"></div>
     <div class="chart-toggle">
       <button class="chart-toggle-btn active" id="ctHira" onclick="setChart('hira',this)" data-i18n="chartHira">平假名 ひらがな</button>
       <button class="chart-toggle-btn" id="ctKata" onclick="setChart('kata',this)" data-i18n="chartKata">片假名 カタカナ</button>
@@ -461,11 +481,13 @@ header{text-align:center;padding:22px 0 2px;}
       <div style="flex:1;height:1px;background:var(--border);"></div>
     </div>
     <div class="chart-wrap"><table class="kana-table" id="dakutenTable"></table></div>
-    <div class="chart-legend">
-      <div class="legend-item" id="legendNormal"><div class="legend-dot normal"></div> 普通</div>
-      <div class="legend-item" id="legendMistake"><div class="legend-dot mistake"></div> 错题本中（红色）</div>
-    </div>
+    <div class="chart-legend" id="chartLegend"></div>
     <div id="chartNote" style="font-size:11px;color:var(--muted);line-height:1.7;padding:0 2px;"></div>
+    <div class="setting-btns">
+      <button class="setting-btn" onclick="exportProgress()" data-i18n="btnExport">导出进度</button>
+      <button class="setting-btn" onclick="document.getElementById('importFile').click()" data-i18n="btnImport">导入进度</button>
+      <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importProgress(this)">
+    </div>
   </div>
 
   <!-- PRACTICE -->
@@ -817,9 +839,22 @@ const CONFUSE_TIPS={
 
 function getConfuseTipForPair(a,b){return CONFUSE_TIPS[a+'_'+b]||CONFUSE_TIPS[b+'_'+a]||null;}
 function getHomophoneKana(r){return HOMOPHONES[r]||[];}
+// v1.6: same-script homophones, romaji spelling variants, script-aware romaji→kana lookup
+function sameScriptHomophones(item){const k=isKataGroup(item);return (HOMOPHONES[item[1]]||[]).filter(c=>/[ァ-ヴ]/.test(c)===k);}
+const ROMAJI_ALT={shi:['si'],chi:['ti'],tsu:['tu'],fu:['hu'],ji:['zi','di'],zu:['du'],wo:['o'],n:['nn']};
+function romajiMatches(raw,ans){return raw===ans||(ROMAJI_ALT[ans]||[]).includes(raw);}
+function kanaMatches(raw){return !!currentItem&&(raw===currentAnswer.trim()||sameScriptHomophones(currentItem).includes(raw));}
+function resolveChosenKana(v,ref){
+  if(!ref||!/^[a-z]+$/.test(v))return v;
+  const k=isKataGroup(ref),ap=getAllKana().filter(p=>isKataGroup(p)===k);
+  let f=ap.find(p=>p[1]===v);
+  if(!f){const canon=Object.keys(ROMAJI_ALT).find(c=>ROMAJI_ALT[c].includes(v));if(canon)f=ap.find(p=>p[1]===canon);}
+  return f?f[0]:v;
+}
 
 function getWrongOptions(correct,count){
-  const allPool=getAllKana(),localPool=getPool().length>=6?getPool():allPool;
+  const same=p=>isKataGroup(p)===isKataGroup(correct);
+  const allPool=getAllKana().filter(same),act=getPool().filter(same),localPool=act.length>=6?act:allPool;
   const homophoneKana=getHomophoneKana(correct[1]).filter(k=>k!==correct[0]);
   const confused=CONFUSABLES[correct[0]]||[];
   let confuseItem=null;
@@ -836,8 +871,30 @@ function getWrongOptions(correct,count){
 /* ── CHART ── */
 let chartMode='hira';
 function setChart(mode,btn){chartMode=mode;document.querySelectorAll('.chart-toggle-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderChart();}
+const PRACTICE_SET=new Set(getAllKana().map(p=>p[0]));
+function kanaState(k,srs,mis){
+  if(!PRACTICE_SET.has(k))return 'na';
+  if(mis[k])return 'weak';
+  const e=srs[k]; if(!e)return 'new';
+  if(e.mastered)return 'mast';
+  if(e.score<0)return 'weak';
+  if(e.score<=3)return 'prac';
+  if(e.score<=6)return 'fam';
+  return 'almost';
+}
+function progressSummary(){
+  const srs=loadSRS(),now=Date.now(),wk=now+7*86400000;let due=0,week=0,mast=0;
+  PRACTICE_SET.forEach(k=>{const e=srs[k];if(!e||!e.mastered)return;mast++;if(e.nextReview&&e.nextReview<=now)due++;if(e.nextReview&&e.nextReview<=wk)week++;});
+  return {due,week,mast,total:PRACTICE_SET.size};
+}
+function renderChartExtras(){
+  const s=progressSummary(),sum=document.getElementById('chartSummary');
+  if(sum)sum.innerHTML=t('chartSummary',s);
+  const lg=document.getElementById('chartLegend');
+  if(lg)lg.innerHTML=['new','prac','fam','almost','mast','weak'].map(k=>`<div class="legend-item"><div class="legend-dot st-${k}"></div> ${t('lg_'+k)}</div>`).join('');
+}
 function renderChart(){
-  const mistakes=loadMistakes();
+  const mistakes=loadMistakes(),srs=loadSRS();renderChartExtras();
   function buildTable(rows,tableId){
     const table=document.getElementById(tableId);if(!table)return;
     let html='<thead><tr>';VOWEL_HEADERS.forEach((v,i)=>{html+=`<th>${i===0?'':v}</th>`;});html+='</tr></thead><tbody>';
@@ -846,10 +903,10 @@ function renderChart(){
       for(let c=1;c<=5;c++){
         const cell=row[c];
         if(!cell){html+=`<td class="kana-cell empty"><span class="cell-kana" style="font-size:18px;opacity:.2">—</span></td>`;continue;}
-        const[hira,kata,romaji]=cell,hiM=!!mistakes[hira],kaM=!!mistakes[kata];
-        if(chartMode==='hira')html+=`<td class="kana-cell ${hiM?'is-mistake':''}"><span class="${hiM?'cell-kana mistake-char':'cell-kana'}">${hira}</span><span class="cell-romaji">${romaji}</span></td>`;
-        else if(chartMode==='kata')html+=`<td class="kana-cell ${kaM?'is-mistake':''}"><span class="${kaM?'cell-kana mistake-char':'cell-kana'}">${kata}</span><span class="cell-romaji">${romaji}</span></td>`;
-        else html+=`<td class="kana-cell ${(hiM||kaM)?'is-mistake':''}"><div class="cell-both"><span class="${hiM?'cell-kana mistake-char':'cell-kana'}">${hira}</span><span class="${kaM?'cell-kana mistake-char':'cell-kana'}">${kata}</span><span class="cell-romaji">${romaji}</span></div></td>`;
+        const[hira,kata,romaji]=cell,hs=kanaState(hira,srs,mistakes),ks=kanaState(kata,srs,mistakes),hiM=hs==='weak',kaM=ks==='weak';
+        if(chartMode==='hira')html+=`<td class="kana-cell ${hiM?'is-mistake':''}"><span class="cell-kana st-${hs}">${hira}</span><span class="cell-romaji">${romaji}</span></td>`;
+        else if(chartMode==='kata')html+=`<td class="kana-cell ${kaM?'is-mistake':''}"><span class="cell-kana st-${ks}">${kata}</span><span class="cell-romaji">${romaji}</span></td>`;
+        else html+=`<td class="kana-cell ${(hiM||kaM)?'is-mistake':''}"><div class="cell-both"><span class="cell-kana st-${hs}">${hira}</span><span class="cell-kana st-${ks}">${kata}</span><span class="cell-romaji">${romaji}</span></div></td>`;
       }
       html+='</tr>';
     });
@@ -882,7 +939,7 @@ function showPage(page){
 
 /* ── MISTAKES ── */
 function loadMistakes(){try{return JSON.parse(localStorage.getItem('kana_mistakes')||'{}');}catch{return{};}}
-function saveMistakes(m){try{localStorage.setItem('kana_mistakes',JSON.stringify(m));}catch{}}
+function saveMistakes(m){const before=loadMistakes();try{localStorage.setItem('kana_mistakes',JSON.stringify(m));}catch{}Sync.stamp('x:',before,m);}
 function addMistake(kana,romaji){const m=loadMistakes();if(m[kana])m[kana].count++;else m[kana]={kana,romaji,count:1};saveMistakes(m);updateBadge();}
 function removeMistake(kana){const m=loadMistakes();delete m[kana];saveMistakes(m);updateBadge();renderNotebook();}
 function clearAllMistakes(){showConfirm(t('confirmClearTitle'),t('confirmClearMsg'),()=>{saveMistakes({});updateBadge();renderNotebook();});}
@@ -904,7 +961,7 @@ function renderNotebook(){
 /* ── SRS ── */
 const REVIEW_INTERVALS=[0,1,3,7,14,30],MASTERY_THRESHOLD=10,MASTERY_FALLBACK=6;
 function loadSRS(){try{return JSON.parse(localStorage.getItem('kana_srs')||'{}');}catch{return{};}}
-function saveSRS(d){try{localStorage.setItem('kana_srs',JSON.stringify(d));}catch{}}
+function saveSRS(d){const before=loadSRS();try{localStorage.setItem('kana_srs',JSON.stringify(d));}catch{}Sync.stamp('s:',before,d);}
 function getSRSEntry(kana,romaji){const d=loadSRS();if(!d[kana])d[kana]={kana,romaji,score:0,mastered:false,reviewLevel:0,nextReview:null};return d[kana];}
 function updateSRSEntry(kana,isCorrect,isFillIn){
   const d=loadSRS();
@@ -1145,19 +1202,21 @@ function nextQuestion(){
     currentItem = questionQueue[currentRound];
     if (!includeMastered) {
       const srsD = loadSRS();
-      if (currentItem && srsD[currentItem[0]] && srsD[currentItem[0]].mastered) {
+      const se = currentItem && srsD[currentItem[0]];
+      const due = se && se.nextReview && Date.now() >= se.nextReview;
+      if (se && se.mastered && !due) {
         currentRound++; continue;
       }
     }
     break;
   }
-  if (currentRound >= totalRounds) { showScore(); return; }
+  if (currentRound >= totalRounds) { if (correctCount+wrongCount===0) { showQwerty(false); showFlick(false); showMasteredNotice(); } else showScore(); return; }
   currentDirection=currentMode;
   if(isReviewMode||currentDirection==='mixed')currentDirection=Math.random()<.5?'kana2romaji':'romaji2kana';
 
   if(currentDirection==='romaji2kana'){
     const hg=HOMOPHONES[currentItem[1]];
-    if(hg){const ap=getAllKana(),cands=hg.map(k=>ap.find(p=>p[0]===k)).filter(Boolean);currentItem=cands[Math.floor(Math.random()*cands.length)];}
+    if(hg){const ap=getAllKana(),kata=isKataGroup(currentItem),cands=hg.map(k=>ap.find(p=>p[0]===k)).filter(p=>p&&isKataGroup(p)===kata);currentItem=cands[Math.floor(Math.random()*cands.length)];}
   }
 
   const srsData=loadSRS();
@@ -1198,8 +1257,8 @@ function nextQuestion(){
     document.getElementById('kanaDisplay').style.fontSize='60px';
     document.getElementById('kanaDisplay').style.fontFamily="-apple-system,'PingFang SC','Noto Sans JP',sans-serif";
     document.getElementById('kanaDisplay').textContent=currentItem[1];
-    const hg=HOMOPHONES[currentItem[1]];
-    document.getElementById('hintText').textContent=hg?t('homoHint', hg, currentItem[1]):'';
+    const hg=sameScriptHomophones(currentItem);
+    document.getElementById('hintText').textContent=hg.length>1?t('homoHint', hg, currentItem[1]):'';
     makeOption=p=>({main:p[0],reveal:p[1],value:p[0]});
   }
 
@@ -1235,7 +1294,7 @@ function submitFillin(){
   const fi=document.getElementById('fillinInput');
   const normalize=s=>s.trim().toLowerCase().replace(/[Ａ-Ｚａ-ｚ０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/\u3000/g,' ').trim();
   const raw=normalize(fi.value);if(!raw)return;
-  const isCorrect=currentDirection==='kana2romaji'?raw===normalize(currentAnswer):raw===currentAnswer.trim()||raw===normalize(currentItem[1]);
+  const isCorrect=currentDirection==='kana2romaji'?romajiMatches(raw,normalize(currentAnswer)):kanaMatches(raw)||raw===normalize(currentItem[1]);
   handleAnswerCore(isCorrect,raw);
 }
 
@@ -1268,7 +1327,7 @@ function handleAnswerCore(isCorrect,chosenValue){
     updateSRSEntry(currentItem[0],isCorrect,isFillIn);
     if(!isCorrect){
       const ap=getAllKana();let ck=chosenValue;
-      if(/^[a-z]+$/.test(chosenValue)){const f=ap.find(p=>p[1]===chosenValue);if(f)ck=f[0];}
+      ck=resolveChosenKana(chosenValue,currentItem);
       if((CONFUSABLES[currentItem[0]]||[]).some(([c])=>c===ck))penalizeConfuseGroup(currentItem[0]);
     }
     if(isCorrect && !wasMastered){
@@ -1315,7 +1374,7 @@ function showScore(){
   document.getElementById('gameArea').style.display='none';
   document.getElementById('scoreScreen').classList.add('show');
   document.getElementById('finalScore').textContent=score;
-  const pct=Math.round((correctCount/totalRounds)*100);
+  const answeredN=correctCount+wrongCount,pct=answeredN?Math.round(correctCount/answeredN*100):0;
   const msg=pct===100?t('scoreMsg100'):pct>=80?t('scoreMsg80'):pct>=60?t('scoreMsg60'):t('scoreMsg0');
   const{mastered,total}=getMasteryStats(),mCount=Object.keys(loadMistakes()).length;
   document.getElementById('scoreMsg').textContent=t('scorePct', pct, msg, mastered, total, mCount);
@@ -1374,7 +1433,7 @@ function exitReview(){
 
 function showConfusePanel(correctKana,chosenValue){
   const ap=getAllKana();let ck=chosenValue;
-  if(/^[a-z]+$/.test(chosenValue)){const f=ap.find(p=>p[1]===chosenValue);if(f)ck=f[0];}
+  ck=resolveChosenKana(chosenValue,currentItem);
   const tip=getConfuseTipForPair(correctKana,ck);
   const panel=document.getElementById('confusePanel'),charsEl=document.getElementById('confuseChars'),tipEl=document.getElementById('confuseTipText');
   if(!tip){
@@ -1472,8 +1531,8 @@ function qkeySubmit() {
     .replace(/　/g, ' ').trim();
   const raw = normalize(qwertyText);
   const isCorrect = currentDirection === 'kana2romaji'
-    ? raw === normalize(currentAnswer)
-    : raw === currentAnswer.trim() || raw === normalize(currentItem[1]);
+    ? romajiMatches(raw, normalize(currentAnswer))
+    : kanaMatches(raw) || raw === normalize(currentItem[1]);
   // Show answer in display
   if (!isCorrect) {
     qwertyText = currentAnswer;
@@ -1685,7 +1744,7 @@ function flickSubmit() {
   const raw = flickText.trim();
   // Accept exact kana match or romaji
   const normalize = s => s.trim().toLowerCase();
-  const isCorrect = raw === currentAnswer.trim() ||
+  const isCorrect = kanaMatches(raw) ||
                     normalize(raw) === normalize(currentItem ? currentItem[1] : '');
   // Visual feedback
   const disp = document.getElementById('flickDisplay');
@@ -1927,6 +1986,14 @@ const I18N = {
     logoText: 'Japanese · 日语练习',
     titleText: '五十音图强化训练',
     pageTitle: '五十音图强化训练',
+    lg_new: '新字', lg_prac: '练习中', lg_fam: '逐渐熟悉', lg_almost: '快掌握了', lg_mast: '已掌握', lg_weak: '需要加强/错题',
+    chartSummary: (s) => `今天到期 <b class="${s.due?'due':''}">${s.due}</b> 个 · 7 天内 <b>${s.week}</b> 个 · 已掌握 <b>${s.mast}</b>/${s.total}`,
+    syncOk: (n) => `☁ 已同步到家庭小站 · ${n}`, syncBusy: '☁ 同步中…', syncOffline: '☁ 连不上家庭小站，进度先存本机，联网后自动同步',
+    syncPick: '☁ 把进度同步到家庭小站：', syncNone: '不同步', syncSwitch: '切换', syncNoPlayers: '☁ 家庭小站里还没有玩家，进度只存本机',
+    syncOff: '☁ 进度只存本机', syncChoose: '选择玩家',
+    btnExport: '导出进度', btnImport: '导入进度',
+    importTitle: '导入进度', importMsg: (n, m) => `用文件里的进度替换当前进度：${n} 个假名的熟练度、${m} 个错题。当前进度会被覆盖。`,
+    importBadTitle: '无法导入', importBadMsg: '这个文件不是 Kana Mastery Trainer 导出的进度文件。',
     fillinPlaceholder: '输入罗马字，如 ka',
     spaceKey: '空格',
     confirmKey: '确认',
@@ -1953,7 +2020,7 @@ const I18N = {
     chartHira: '平假名 ひらがな', chartKata: '片假名 カタカナ', chartBoth: '对照',
     dakutenLabel: '浊音・半浊音',
     chartLegendNormal: '普通', chartLegendMistake: '错题本中（红色）',
-    chartNote: '横列为母音（a i u e o），纵列为子音行。标红的字是你的错题，重点记忆！\n※ じ・ぢ 均读作 ji，ず・づ 均读作 zu（同音异字）。',
+    chartNote: '横列为母音（a i u e o），纵列为子音行。颜色表示熟练度，红色是需要加强或在错题本里的字。\n※ じ・ぢ 均读作 ji，ず・づ 均读作 zu（同音异字）。',
     // Practice
     sectionRange: '练习范围',
     qsHira: '平假名', qsHiraDaku: '平假名浊音', qsKata: '片假名', qsKataDaku: '片假名浊音',
@@ -1971,7 +2038,7 @@ const I18N = {
     // Question
     qTypeKana: (t) => `这个<span style="color:${t.color};font-weight:900;">${t.name}</span>的读法是？`,
     qTypeRomaji: (t) => `罗马字对应的假名是？ <span style="color:${t.color};font-weight:900;">${t.name}</span>`,
-    homoHint: (arr, r) => `（${arr.join('・')}都读作 ${r}，本题只选其一）`,
+    homoHint: (arr, r) => `（${arr.join('・')}都读作 ${r}，任一都算对）`,
     // Answer
     correct: '✓ 正确！', correctFast: '✓ 正确！⚡',
     mastered: '✓ 正确！🌸 已掌握！',
@@ -2015,6 +2082,14 @@ const I18N = {
     logoText: 'Japanese · 日本語 Practice',
     titleText: 'Kana Mastery Trainer',
     pageTitle: 'Kana Mastery Trainer',
+    lg_new: 'New', lg_prac: 'Practicing', lg_fam: 'Getting there', lg_almost: 'Almost', lg_mast: 'Mastered', lg_weak: 'Weak / mistakes',
+    chartSummary: (s) => `Due today <b class="${s.due?'due':''}">${s.due}</b> · next 7 days <b>${s.week}</b> · mastered <b>${s.mast}</b>/${s.total}`,
+    syncOk: (n) => `☁ Synced to family hub · ${n}`, syncBusy: '☁ Syncing…', syncOffline: '☁ Hub unreachable — saved on this device, will sync when back',
+    syncPick: '☁ Sync progress to the hub as:', syncNone: `Don't sync`, syncSwitch: 'switch', syncNoPlayers: '☁ No players on the hub yet — saved on this device only',
+    syncOff: '☁ Saved on this device only', syncChoose: 'choose a player',
+    btnExport: 'Export progress', btnImport: 'Import progress',
+    importTitle: 'Import progress', importMsg: (n, m) => `Replace your current progress with this file: ${n} kana scores and ${m} mistakes. Current progress will be overwritten.`,
+    importBadTitle: `Can't import`, importBadMsg: `This file isn't a Kana Mastery Trainer progress export.`,
     fillinPlaceholder: 'Type romaji, e.g. ka',
     spaceKey: 'Space',
     confirmKey: 'OK',
@@ -2040,7 +2115,7 @@ const I18N = {
     chartHira: 'Hiragana ひらがな', chartKata: 'Katakana カタカナ', chartBoth: 'Both',
     dakutenLabel: 'Dakuten & Handakuten',
     chartLegendNormal: 'Normal', chartLegendMistake: 'In mistake book (red)',
-    chartNote: 'Rows = consonants, columns = vowels (a i u e o). Red = your mistakes.\n※ じ・ぢ both read "ji", ず・づ both read "zu" (homophones).',
+    chartNote: 'Rows = consonants, columns = vowels (a i u e o). Colors show progress; red = weak or in your mistake book.\n※ じ・ぢ both read "ji", ず・づ both read "zu" (homophones).',
     // Practice
     sectionRange: 'Practice range',
     qsHira: 'Hiragana', qsHiraDaku: 'Hiragana voiced', qsKata: 'Katakana', qsKataDaku: 'Katakana voiced',
@@ -2058,7 +2133,7 @@ const I18N = {
     // Question
     qTypeKana: (t) => `What does this <span style="color:${t.color};font-weight:900;">${t.name}</span> read?`,
     qTypeRomaji: (t) => `Which <span style="color:${t.color};font-weight:900;">${t.name}</span> matches this romaji?`,
-    homoHint: (arr, r) => `(${arr.join('・')} all read "${r}" — pick one)`,
+    homoHint: (arr, r) => `(${arr.join('・')} all read "${r}" — either counts)`,
     // Answer
     correct: '✓ Correct!', correctFast: '✓ Correct! ⚡',
     mastered: '✓ Correct! 🌸 Mastered!',
@@ -2188,9 +2263,210 @@ function applyLang() {
   if (lm) { lm.innerHTML = `<div class="legend-dot mistake"></div> ${t('chartLegendMistake')}`; }
   const cn = document.getElementById('chartNote');
   if (cn) cn.textContent = t('chartNote');
+  Sync.renderStatus();
   const mns = document.getElementById('masteredNoticeSub');
   if (mns) mns.innerHTML = t('masteredNoticeSub').replace('\n', '<br>');
   if (document.getElementById('notebookPage').classList.contains('show')) renderNotebook();
+}
+
+/* ── SYNC (optional): self-hosted save service ──
+   Turns on only when the page is served by a host that answers GET /api/health with {"ok":true}
+   (a family-hub save-api). Anywhere else (GitHub Pages, a local file) it stays silent and progress
+   lives in localStorage only, with export / import as the backup.
+   Storage: the server's `last` bucket, one key per kana, [value, timestamp], newest wins:
+     s:<kana> → SRS entry      x:<kana> → mistake entry      null value = deleted
+   so two devices practising different kana never overwrite each other, and a delete or reset is a
+   newer write rather than a missing key that an old device could restore. */
+const Sync = (() => {
+  const APP = 'kana';
+  const K_DOC = 'kana_doc', K_PEND = 'kana_pending', K_PID = 'kana_hub_pid', K_PNAME = 'kana_hub_pname', K_HUB = 'kana_hub_seen';
+  const get = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch { return d; } };
+  const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // pid: null = not chosen yet on this device, 'none' = chose not to sync
+  let pid = get(K_PID, null), pname = get(K_PNAME, ''), hub = null, players = [], state = 'local', timer = null, busy = null;
+  const loc = window.location || {};
+  const canFetch = () => typeof fetch === 'function' && /^https?:$/.test(loc.protocol || '');
+  const base = () => (loc.origin || '') + '/api';
+
+  function mergeLast(a, b) {
+    const r = Object.assign({}, a);
+    for (const [k, v] of Object.entries(b || {})) {
+      if (!Array.isArray(v) || v.length !== 2 || typeof v[1] !== 'number') continue;
+      if (!r[k] || v[1] >= r[k][1]) r[k] = v;
+    }
+    return r;
+  }
+  function materialize(doc) {
+    const srs = {}, mis = {};
+    for (const [k, v] of Object.entries(doc)) {
+      if (v[0] == null) continue;
+      if (k.startsWith('s:')) srs[k.slice(2)] = v[0]; else if (k.startsWith('x:')) mis[k.slice(2)] = v[0];
+    }
+    try { localStorage.setItem('kana_srs', JSON.stringify(srs)); localStorage.setItem('kana_mistakes', JSON.stringify(mis)); } catch {}
+  }
+  function stamp(prefix, before, after) {
+    const doc = get(K_DOC, {}), pend = get(K_PEND, {}), now = Date.now(); let changed = false;
+    new Set([...Object.keys(before || {}), ...Object.keys(after || {})]).forEach(k => {
+      const a = before && before[k], b = after && after[k];
+      if (JSON.stringify(a) === JSON.stringify(b)) return;
+      const v = [b === undefined ? null : b, now];
+      doc[prefix + k] = v; pend[prefix + k] = v; changed = true;
+    });
+    if (changed) { put(K_DOC, doc); put(K_PEND, pend); schedule(); }
+  }
+  function setState(s) { state = s; renderStatus(); }
+  function renderStatus() {
+    const el = document.getElementById('syncStatus'); if (!el) return;
+    if (state === 'pick') {
+      el.innerHTML = players.length
+        ? esc(t('syncPick')) + ' ' + players.map(p => `<button onclick="Sync.choose('${esc(p.id)}')">${esc(p.name)}</button>`).join('')
+          + `<button class="sync-link" onclick="Sync.choose('none')">${esc(t('syncNone'))}</button>`
+        : esc(t('syncNoPlayers'));
+    } else if (state === 'ok') {
+      el.innerHTML = esc(t('syncOk', pname)) + ` · <button class="sync-link" onclick="Sync.repick()">${esc(t('syncSwitch'))}</button>`;
+    } else if (state === 'off') {
+      el.innerHTML = esc(t('syncOff')) + ` · <button class="sync-link" onclick="Sync.repick()">${esc(t('syncChoose'))}</button>`;
+    } else if (state === 'busy') { el.innerHTML = esc(t('syncBusy'));
+    } else if (state === 'offline') { el.innerHTML = esc(t('syncOffline'));
+    } else { el.innerHTML = ''; }                                   // no hub here: say nothing
+  }
+  async function req(method, path, body, keepalive) {
+    const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    const tm = ctl ? setTimeout(() => ctl.abort(), 6000) : null;
+    try {
+      const r = await fetch(base() + path, { method, keepalive: !!keepalive, signal: ctl ? ctl.signal : undefined,
+        headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+      if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; }
+      return await r.json();
+    } finally { if (tm) clearTimeout(tm); }
+  }
+  async function detect() {
+    if (hub === true) return true;
+    try {
+      const j = await req('GET', '/health');
+      if (j && j.ok === true) { hub = true; put(K_HUB, true); return true; }
+    } catch (e) {}
+    if (get(K_HUB, false)) throw new Error('hub down');             // known hub, temporarily unreachable
+    hub = false; return false;                                      // plain static host: stay local, quietly
+  }
+  async function loadPlayers() {
+    const j = await req('GET', '/players');
+    players = (j.players || []).filter(p => p && p.id && p.name);
+  }
+  function sync() {
+    if (!canFetch() || hub === false) { setState(hub === false ? 'nohub' : 'local'); return Promise.resolve(); }
+    if (busy) return busy;
+    busy = (async () => {
+      try {
+        if (!(await detect())) { setState('nohub'); return; }
+        if (pid === 'none') { setState('off'); return; }
+        if (!pid) { await loadPlayers(); setState('pick'); return; }
+        if (!pname) {                            // upgraded from v1.7: id cached, name not yet
+          await loadPlayers(); const p = players.find(x => x.id === pid);
+          if (p) { pname = p.name; put(K_PNAME, pname); }
+        }
+        if (state !== 'ok') setState('busy');
+        const sent = get(K_PEND, {});
+        let j;
+        try {
+          j = Object.keys(sent).length ? await req('PUT', `/save/${APP}/${pid}`, { doc: { last: sent } })
+                                       : await req('GET', `/save/${APP}/${pid}`);
+        } catch (e) {
+          if (e.status === 404) { pid = null; put(K_PID, null); await loadPlayers(); setState('pick'); return; }   // player removed
+          throw e;
+        }
+        const pend = get(K_PEND, {});            // drop what the server confirmed; keep edits made meanwhile
+        for (const k of Object.keys(sent)) if (pend[k] && pend[k][1] === sent[k][1]) delete pend[k];
+        put(K_PEND, pend);
+        const before = JSON.stringify(get(K_DOC, {}));
+        const merged = mergeLast(get(K_DOC, {}), ((j && j.doc) || {}).last);
+        if (JSON.stringify(merged) !== before) {
+          put(K_DOC, merged); materialize(merged);
+          updateBadge(); updateMasteryBar(); renderChart();
+          if (document.getElementById('notebookPage').classList.contains('show')) renderNotebook();
+        }
+        setState('ok');
+      } catch (e) {
+        setState('offline');
+      } finally {
+        busy = null;
+        if (state === 'ok' && Object.keys(get(K_PEND, {})).length) schedule();
+      }
+    })();
+    return busy;
+  }
+  function schedule() { clearTimeout(timer); timer = setTimeout(sync, 1500); }
+  function choose(id) {
+    if (id === 'none') { pid = 'none'; put(K_PID, 'none'); setState('off'); return Promise.resolve(); }
+    const p = players.find(x => x.id === id); if (!p) return Promise.resolve();
+    pid = p.id; pname = p.name; put(K_PID, pid); put(K_PNAME, pname);
+    return sync();
+  }
+  async function repick() {
+    try { await loadPlayers(); setState('pick'); } catch (e) { setState('offline'); }
+  }
+  function flushOnLeave() {                       // best effort when the page goes to the background
+    const pend = get(K_PEND, {});
+    if (hub !== true || !pid || pid === 'none' || !Object.keys(pend).length) return;
+    req('PUT', `/save/${APP}/${pid}`, { doc: { last: pend } }, true).catch(() => {});
+  }
+  function init() {
+    if (localStorage.getItem(K_DOC) == null) {   // first run on this device: adopt existing progress with the
+      const doc = {}, srs = loadSRS(), mis = loadMistakes();   // oldest timestamp, so already-synced data wins
+      for (const k in srs) doc['s:' + k] = [srs[k], 1];
+      for (const k in mis) doc['x:' + k] = [mis[k], 1];
+      put(K_DOC, doc); put(K_PEND, Object.assign({}, doc));
+    }
+    renderStatus();
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') sync(); else flushOnLeave(); });
+    if (window.addEventListener) window.addEventListener('online', () => sync());
+    return sync();
+  }
+  return { init, sync, stamp, choose, repick, renderStatus, state: () => state };
+})();
+
+/* ── EXPORT / IMPORT (manual backup, works everywhere) ── */
+function buildExport() {
+  return { app: 'kana-mastery-trainer', format: 1, exported: new Date().toISOString(), srs: loadSRS(), mistakes: loadMistakes() };
+}
+function exportProgress() {
+  const data = buildExport();
+  const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `kana-progress-${data.exported.slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function parseProgress(text) {
+  let d; try { d = JSON.parse(text); } catch { return null; }
+  if (!d || d.app !== 'kana-mastery-trainer' || !d.srs || typeof d.srs !== 'object' || !d.mistakes || typeof d.mistakes !== 'object') return null;
+  const srs = {}, mis = {}, maxLv = REVIEW_INTERVALS.length - 1;
+  for (const [k, e] of Object.entries(d.srs))
+    if (PRACTICE_SET.has(k) && e && typeof e.score === 'number' && isFinite(e.score))
+      srs[k] = { kana: k, romaji: String(e.romaji || ''), score: e.score, mastered: !!e.mastered,
+                 reviewLevel: Math.max(0, Math.min(maxLv, e.reviewLevel | 0)), nextReview: typeof e.nextReview === 'number' ? e.nextReview : null };
+  for (const [k, e] of Object.entries(d.mistakes))
+    if (PRACTICE_SET.has(k) && e && typeof e.count === 'number')
+      mis[k] = { kana: k, romaji: String(e.romaji || ''), count: Math.max(1, e.count | 0) };
+  if (!Object.keys(srs).length && !Object.keys(mis).length) return null;   // nothing usable: don't wipe progress
+  return { srs, mis };
+}
+function applyImport(text) {
+  const p = parseProgress(text);
+  if (!p) { showConfirm(t('importBadTitle'), t('importBadMsg'), () => {}); return; }
+  showConfirm(t('importTitle'), t('importMsg', Object.keys(p.srs).length, Object.keys(p.mis).length), () => {
+    saveSRS(p.srs); saveMistakes(p.mis);
+    updateBadge(); updateMasteryBar(); renderChart();
+    if (!isReviewMode) restartGame();
+  });
+}
+function importProgress(input) {
+  const f = input.files && input.files[0]; input.value = '';
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => applyImport(String(r.result));
+  r.readAsText(f);
 }
 
 /* ── INIT ── */
@@ -2205,6 +2481,7 @@ applyLang();
 initFlickKeys();
 if(questionQueue.length>0)nextQuestion();
 updateBadge();updateMasteryBar();renderChart();
+Sync.init();
 </script>
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f23dda7b384c440bbdfa7ee17a376293"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

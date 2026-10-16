@@ -31,10 +31,11 @@ This tool is designed specifically to push you through that wall — from recogn
 - **Speed-based scoring** — answering quickly earns a ×1.5 score bonus (⚡); slow answers reduce gains
 - **Mastery badges** — New / Practicing / Getting there / Almost / Needs work / 🌸 Review / 🌸 Mastered
 - **Mistake book** — wrong answers are automatically logged, highlighted red in the kana chart, and removed when mastered
+- **Flexible romaji** — Hepburn and Kunrei spellings both accepted (shi/si, tsu/tu, fu/hu, ji/zi…); homophones like じ/ぢ count either way
 
 ### Interface
 - **Bilingual UI** — full Chinese / English support including all 55 confuse-pair explanations
-- **Kana chart** — full hiragana + katakana reference with mistake highlighting
+- **Kana chart as a progress map** — every kana coloured by mastery (new → practicing → almost → mastered, red = weak), plus how many reviews are due today and this week
 - **Mobile-first** — custom flick keyboard with tap-cycle and swipe-to-select; works on desktop too
 
 ---
@@ -65,11 +66,23 @@ This tool is designed specifically to push you through that wall — from recogn
 
 - Pure HTML / CSS / JavaScript — single file, no framework, no build step
 - All progress stored in `localStorage` — no server, no account needed
+- **Export / Import progress** (bottom of the chart page) — a JSON backup you can move between devices. Worth doing now and then: Safari may clear site data for sites you haven't opened in a while
+- **Optional self-hosted sync** — when the page is served by a host that answers `GET /api/health` with `{"ok":true}` and provides `/api/players` and `/api/save/<app>/<player>`, it offers to sync progress across devices. Everywhere else (including GitHub Pages) it makes no requests beyond that one check and shows nothing
 - Fonts: Noto Serif JP / Noto Sans JP (Google Fonts) + PingFang SC (system)
 
 **AI-assisted development**
 - Concept and Japanese learning methodology: ChatGPT
 - UI/UX design, SRS system, and full implementation: Claude (Anthropic)
+
+---
+
+## 🧪 Tests
+
+```bash
+./tests/run.sh      # Node 18+ and Python 3, nothing to install
+```
+
+Runs the page script headlessly: SRS scheduling, answer checking, distractors and confusion hints (`regress.js`), plus sync between simulated devices, GitHub-Pages behaviour, export/import and chart colours (`sync.test.js`).
 
 ---
 
@@ -88,6 +101,14 @@ No gamification, no streaks, no forced progression. Just focused drills and hone
 - [ ] Desktop layout polish (native keyboard for fill-in on desktop)
 - [ ] Writing / stroke recognition practice
 - [ ] Expand to vocabulary and kanji
+
+---
+
+## 📝 Changelog
+
+- **v1.8** — Sync is optional and auto-detected; choose a player once; Export / Import progress
+- **v1.7** — Kana chart coloured by mastery with due-review counts; self-hosted sync
+- **v1.6** — Fixed: due reviews of mastered kana were never asked; katakana confusion hints showed the hiragana pair; homophone fill-ins (じ/ぢ) could not be answered; Kunrei romaji rejected; accuracy counted skipped questions; katakana questions offered hiragana distractors
 
 ---
 
